@@ -125,10 +125,10 @@
     </xsl:if>
 
     <xsl:if test="$logo != '' and $logo != 'ADD LOGO URL HERE'">
-      <table border="0" cellspacing="0" cellpadding="0" style="width:100%; margin:0; border-collapse:collapse;">
+      <table border="0" cellspacing="0" cellpadding="0" style="width:350px; max-width:350px; margin:0; border-collapse:collapse;">
         <tr><td height="12">&#160;</td></tr>
         <tr>
-          <td align="center" style="text-align:center; width:100%;">
+          <td align="center" style="text-align:center; width:350px;">
             <img src="{$logo}" alt="Library Logo" style="display:block; margin:0 auto; max-height:100px;" />
           </td>
         </tr>
