@@ -11,6 +11,7 @@ Instead of editing raw XSL by hand, staff can answer a short form, preview the g
 - Shows a live preview.
 - Replaces placeholders like `@@LOGO_URL@@` with survey answers.
 - Supports letter-specific follow-up questions that appear only when needed.
+- Runs a minimal GitHub Actions validation workflow on pushes and pull requests.
 
 ## Project files
 
@@ -24,6 +25,16 @@ Instead of editing raw XSL by hand, staff can answer a short form, preview the g
 Serve the folder from a local or web server, then open `index.html` in a browser.
 
 If you open the file directly with a `file://` URL, browsers may block loading external `.xsl` template files.
+
+## Testing
+
+Run the local validation checks with:
+
+```bash
+npm test
+```
+
+GitHub Actions will also run the same lightweight validation automatically on pushes, pull requests, and manual workflow runs.
 
 ## Embedding
 

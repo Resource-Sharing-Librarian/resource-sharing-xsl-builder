@@ -1,0 +1,9 @@
+{
+  "name": "resource-sharing-xsl-builder",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Survey-driven XSL builder for resource sharing letters.",
+  "scripts": {
+    "test": "node tests/validate.js"
+  }
+}
