@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XSL Builder Prototype</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Embeddable Prototype</p>
+      <h1>Resource sharing letter XSL builder</h1>
+      <p class="lede">
+        Answer the survey, choose a letter type, and generate an XSL file assembled from reusable chunks.
+      </p>
+    </section>
+
+    <section class="layout">
+      <form class="panel form-panel" id="builder-form">
+        <div class="panel-heading">
+          <h2>Questions</h2>
+          <p>These first questions define the library and the letter you want to customize.</p>
+        </div>
+
+        <div class="field-grid">
+          <label class="field">
+            <span>Library Name</span>
+            <input type="text" name="libraryName" value="My Library">
+          </label>
+
+          <label class="field field-wide">
+            <span>Letter to Customize</span>
+            <select name="letterType">
+              <option value="">Select a letter</option>
+              <option value="pull-slip-letter">A) Pull Slip Letter (Ful Incoming Slip Letter)</option>
+              <option value="pick-from-shelf">B) Pick from shelf (Alma P2P Pull Slip) (Ful Resource Request Letter)</option>
+              <option value="borrowing-receive-slip">C) Borrowing Receive Slip (Resource Sharing Receive Slip Letter)</option>
+              <option value="return-label">D) Return Label (Resource Sharing Return Slip Letter)</option>
+              <option value="query-to-patron">E) Query to Patron Letter (Query to Patron Letter)</option>
+              <option value="cancellation-letter">F) Cancellation Letter (Ful Cancel Request Letter)</option>
+              <option value="hold-shelf-letter">G) Hold Shelf Letter (On Hold Shelf Letter)</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="field-grid" id="letter-specific-questions" hidden>
+          <label class="field field-wide" data-letter-question="pull-slip-letter">
+            <span>What is the URL for the logo you want printed on the slip?</span>
+            <input
+              type="url"
+              name="logoUrl"
+              value=""
+              placeholder="https://example.org/library-logo.png">
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter">
+            <span>Do you want a Shipping Label, Return Label, or No Label on the slip?</span>
+            <select name="labelChoice">
+              <option value="shipping-label" selected>A) Shipping Label to mail the item to the Borrowing Library</option>
+              <option value="return-label">B) Return Label for the Borrowing Library to use to return the item</option>
+              <option value="no-label">C) No Label</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="button primary">Generate XSL</button>
+          <button type="reset" class="button secondary" id="reset-button">Reset</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel preview-panel">
+      <div class="panel-heading">
+        <h2>Generated XSL</h2>
+        <p>The preview updates from your survey answers without downloading a file.</p>
+      </div>
+      <pre id="xsl-preview"></pre>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
