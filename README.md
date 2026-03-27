@@ -1,21 +1,23 @@
-# XSL Builder Prototype
+# Resource Sharing XSL Builder
 
-This is a standalone prototype for a website-embedded XSL builder.
+A lightweight web app for building Resource Sharing letter XSL from survey responses.
+
+Instead of editing raw XSL by hand, staff can answer a short form, preview the generated output, and produce a customized template based on the selected letter and configuration choices.
 
 ## What it does
 
 - Asks users a short series of questions.
-- Maps their answers to reusable saved XSL chunks.
-- Assembles a final `.xsl` file in the browser.
+- Applies survey answers to letter-specific XSL templates.
 - Shows a live preview.
-- Downloads the generated XSL without a server.
 - Replaces placeholders like `@@LOGO_URL@@` with survey answers.
+- Supports letter-specific follow-up questions that appear only when needed.
 
-## Files
+## Project files
 
 - `index.html`: widget markup
 - `styles.css`: presentation
-- `app.js`: form logic, chunk selection, XSL assembly, and download
+- `app.js`: form logic, conditional questions, template loading, and XSL transformation
+- `pull-slip-letter.xsl`: current Ful Incoming Slip Letter source template
 
 ## How to run
 
@@ -23,7 +25,7 @@ Serve the folder from a local or web server, then open `index.html` in a browser
 
 If you open the file directly with a `file://` URL, browsers may block loading external `.xsl` template files.
 
-## How to embed
+## Embedding
 
 The simplest option is to host this folder and embed it in your site with an `iframe`.
 
@@ -45,14 +47,12 @@ If you want the app to live directly inside an existing page instead of an `ifra
 <div id="xsl-builder-root"></div>
 ```
 
-## How to extend the chunk system
+## Extending the project
 
-The current chunk library is in `app.js`, and real letter templates can also live as separate `.xsl` files beside it:
+Letter logic currently lives in `app.js`, and real letter templates can live as separate `.xsl` files beside it:
 
-- `chunkCatalog` controls the visible list of saved chunks.
-- `getSelectedChunkIds()` decides which chunks are active.
 - `templateFile` on a letter definition lets that letter load a real XSL file directly.
-- `buildHeaderChunk()`, `buildGreetingChunk()`, and similar functions return reusable XSL fragments.
 - `assembleScaffoldXsl()` stitches scaffold fragments together for letters that do not yet have a real template file.
+- `applyTemplateReplacements()` applies survey answers like logo URL and label choice to the selected template.
 
-To support your real project, you would replace the sample chunk functions with your real saved XSL snippets and add more questions that map to your letter variations.
+To keep growing the app, add another letter definition, create the matching follow-up questions in `index.html`, and map those answers to template replacements in `app.js`.
