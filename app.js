@@ -198,6 +198,12 @@ function applyTemplateReplacements(templateText, state) {
   return output;
 }
 
+function normalizeXmlForParsing(text) {
+  return text
+    .replace(/^\uFEFF/, '')
+    .replace(/^\s+<\?xml/, '<?xml');
+}
+
 function buildLetterMetaChunk(state, definition) {
   return [
     `  <!-- Letter ${definition.code}: ${definition.shortName} -->`,
@@ -378,8 +384,8 @@ async function renderTransformedOutput(xslText) {
   try {
     const xmlText = await getSampleXml();
     const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'application/xml');
-    const xslDoc = parser.parseFromString(xslText, 'application/xml');
+    const xmlDoc = parser.parseFromString(normalizeXmlForParsing(xmlText), 'application/xml');
+    const xslDoc = parser.parseFromString(normalizeXmlForParsing(xslText), 'application/xml');
 
     if (xmlDoc.querySelector('parsererror') || xslDoc.querySelector('parsererror')) {
       renderedPreview.textContent = 'The sample XML or generated XSL could not be parsed for preview.';
