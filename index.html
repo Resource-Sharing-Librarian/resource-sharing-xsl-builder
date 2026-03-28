@@ -9,11 +9,8 @@
 <body>
   <main class="page">
     <section class="hero">
-      <p class="eyebrow">Embeddable Prototype</p>
-      <h1>Resource sharing letter XSL builder</h1>
-      <p class="lede">
-        Answer the survey, choose a letter type, and generate an XSL file assembled from reusable chunks.
-      </p>
+      <p class="eyebrow">ELUNA Rapido Working Group</p>
+      <h1>Resource Sharing Letter XSL Builder</h1>
     </section>
 
     <section class="layout">
@@ -56,6 +53,31 @@
               <option value="no-label">No Label</option>
             </select>
           </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter">
+            <span>Do you want the request creation date added to your slip?</span>
+            <select name="includeCreateDate">
+              <option value="yes" selected>Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeCreateDate" data-dependent-value="yes">
+            <span>What format do you want the date to appear?</span>
+            <select name="createDateFormat">
+              <option value="numerical" selected>Numerical Format (Example: 03/25/2026)</option>
+              <option value="readable">Readable Format (Example: March 25, 2026)</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter">
+            <span>Do you want a space to communicate issues or pre-existing damage to the Borrowing Library? What format?</span>
+            <select name="noteAreaType">
+              <option value="none" selected>No note area</option>
+              <option value="line">A line dedicated to writing a short note</option>
+              <option value="checkboxes">A series of check boxes explaining the issues</option>
+            </select>
+          </label>
         </div>
 
         <div class="actions">
@@ -68,7 +90,7 @@
     <section class="panel preview-panel">
       <div class="panel-heading">
         <h2>Generated XSL</h2>
-        <p>The preview updates from your survey answers without downloading a file.</p>
+        <p>Select all the below code, copy it, and paste it into the appropriate Letter in Alma.</p>
       </div>
       <pre id="xsl-preview"></pre>
     </section>

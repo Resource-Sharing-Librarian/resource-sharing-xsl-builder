@@ -137,6 +137,39 @@
     </xsl:if>
   </xsl:template>
 
+  <xsl:template name="format-create-date">
+    <xsl:param name="date" />
+    <xsl:param name="format" select="'numerical'" />
+    <xsl:choose>
+      <xsl:when test="$format = 'readable' and string-length(normalize-space($date)) = 10">
+        <xsl:variable name="month" select="substring($date, 1, 2)" />
+        <xsl:variable name="day" select="substring($date, 4, 2)" />
+        <xsl:variable name="year" select="substring($date, 7, 4)" />
+        <xsl:choose>
+          <xsl:when test="$month = '01'">January</xsl:when>
+          <xsl:when test="$month = '02'">February</xsl:when>
+          <xsl:when test="$month = '03'">March</xsl:when>
+          <xsl:when test="$month = '04'">April</xsl:when>
+          <xsl:when test="$month = '05'">May</xsl:when>
+          <xsl:when test="$month = '06'">June</xsl:when>
+          <xsl:when test="$month = '07'">July</xsl:when>
+          <xsl:when test="$month = '08'">August</xsl:when>
+          <xsl:when test="$month = '09'">September</xsl:when>
+          <xsl:when test="$month = '10'">October</xsl:when>
+          <xsl:when test="$month = '11'">November</xsl:when>
+          <xsl:when test="$month = '12'">December</xsl:when>
+        </xsl:choose>
+        <xsl:text> </xsl:text>
+        <xsl:value-of select="number($day)" />
+        <xsl:text>, </xsl:text>
+        <xsl:value-of select="$year" />
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:value-of select="$date" />
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+
   <!-- ===== END: GENERAL SYSTEM CODE ===== -->
 
 
@@ -225,8 +258,8 @@
           }
 
           .rsSlip td {
-            padding-top: 2px !important;
-            padding-bottom: 2px !important;
+            padding-top: 1px !important;
+            padding-bottom: 1px !important;
             vertical-align: top !important;
           }
 
@@ -328,6 +361,20 @@
                   <xsl:if test="notification_data/partner_code = 'RapidILL'">
                     <tr><td><b>Pod:&#160;RapidR</b></td></tr>
                   </xsl:if>
+
+                  <!-- BEGIN OPTIONAL CREATE DATE -->
+                  <xsl:if test="normalize-space(notification_data/incoming_request/create_date) != ''">
+                    <tr>
+                      <td>
+                        <b>Date:&#160;</b>
+                        <xsl:call-template name="format-create-date">
+                          <xsl:with-param name="date" select="notification_data/incoming_request/create_date" />
+                          <xsl:with-param name="format" select="'@@CREATE_DATE_FORMAT@@'" />
+                        </xsl:call-template>
+                      </td>
+                    </tr>
+                  </xsl:if>
+                  <!-- END OPTIONAL CREATE DATE -->
                 </table>
 
                 <!-- Logo for all printouts -->
@@ -340,7 +387,7 @@
                      NOTE: Contains PHYSICAL and DIGITAL conditional blocks.
                      ============================================================ -->
                 <!-- ===== BEGIN SECTION 09 - MAIN CONTENT TABLE ===== -->
-                <table role="presentation" cellspacing="0" cellpadding="5" border="0">
+                <table role="presentation" cellspacing="0" cellpadding="2" border="0">
 
                   <!-- ==========================================================
                        SECTION 10 - PHYSICAL BLOCK (RS SLIP + SHIPPING LABEL)
@@ -420,7 +467,15 @@
                       <xsl:call-template name="spacer" />
                     </xsl:if>
 
-                    <tr><td><b>Note:__________________________</b></td></tr>
+                    <!-- BEGIN OPTIONAL NOTE AREA -->
+                    <tr>
+                      <td style="width:350px;">
+                        <b>Note:</b>
+                        <div style="display:block; width:350px; border-bottom:1px solid #000; height:14px;"></div>
+                      </td>
+                    </tr>
+                    <xsl:call-template name="spacer" />
+                    <!-- END OPTIONAL NOTE AREA -->
                     <!-- ==========================================================
                          SECTION 10B - SHIPPING LABEL
                          NOTE: Use this section if the respondent says they want a shipping label

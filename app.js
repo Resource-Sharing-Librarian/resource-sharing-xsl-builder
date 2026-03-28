@@ -4,6 +4,7 @@ const renderedPreview = document.querySelector('#rendered-preview');
 const resetButton = document.querySelector('#reset-button');
 const letterSpecificQuestions = document.querySelector('#letter-specific-questions');
 const letterQuestionGroups = Array.from(document.querySelectorAll('[data-letter-question]'));
+const dependentQuestionGroups = Array.from(document.querySelectorAll('[data-dependent-question]'));
 const templateCache = {};
 let sampleXmlCache = '';
 
@@ -128,7 +129,10 @@ function readFormState() {
     libraryName: form.elements.libraryName.value.trim(),
     letterType: form.elements.letterType.value,
     logoUrl: form.elements.logoUrl.value.trim(),
-    labelChoice: form.elements.labelChoice.value
+    labelChoice: form.elements.labelChoice.value,
+    includeCreateDate: form.elements.includeCreateDate.value,
+    createDateFormat: form.elements.createDateFormat.value,
+    noteAreaType: form.elements.noteAreaType.value
   };
 }
 
@@ -164,6 +168,18 @@ function syncLetterSpecificQuestions() {
     element.hidden = !isMatch;
     element.style.display = isMatch ? '' : 'none';
   });
+
+  dependentQuestionGroups.forEach((element) => {
+    const controllingField = form.elements[element.dataset.dependentQuestion];
+    const expectedValue = element.dataset.dependentValue;
+    const shouldShow = hasLetter
+      && element.dataset.letterQuestion === selectedLetter
+      && controllingField
+      && controllingField.value === expectedValue;
+
+    element.hidden = !shouldShow;
+    element.style.display = shouldShow ? '' : 'none';
+  });
 }
 
 function removeSectionByPattern(templateText, pattern) {
@@ -188,11 +204,65 @@ function applyLabelChoice(templateText, state) {
   );
 }
 
+function applyCreateDateChoice(templateText, state) {
+  const createDatePattern = /[ \t]*<!-- BEGIN OPTIONAL CREATE DATE -->[\s\S]*?<!-- END OPTIONAL CREATE DATE -->[^\S\r\n]*/;
+
+  if (state.includeCreateDate === 'no') {
+    return removeSectionByPattern(templateText, createDatePattern);
+  }
+
+  return templateText;
+}
+
+function applyCreateDateFormat(templateText, state) {
+  return templateText.replaceAll('@@CREATE_DATE_FORMAT@@', state.createDateFormat || 'numerical');
+}
+
+function applyNoteAreaChoice(templateText, state) {
+  const notePattern = /[ \t]*<!-- BEGIN OPTIONAL NOTE AREA -->[\s\S]*?<!-- END OPTIONAL NOTE AREA -->[^\S\r\n]*/;
+
+  if (state.noteAreaType === 'none') {
+    return removeSectionByPattern(templateText, notePattern);
+  }
+
+  if (state.noteAreaType === 'checkboxes') {
+    const checkboxBlock = [
+      '                    <!-- BEGIN OPTIONAL NOTE AREA -->',
+      '                    <tr>',
+      '                      <td><b><span style="text-decoration:underline;">Item Condition Report:</span></b></td>',
+      '                    </tr>',
+      '                    <table cellspacing="0" cellpadding="5" border="0" style="width:350px; max-width:350px; table-layout:fixed; border-collapse:collapse;">',
+      '                      <tr>',
+      '                        <td><b><span style="font-size:18px;">&#9633;</span> Binding Issues</b></td>',
+      '                        <td><b><span style="font-size:18px;">&#9633;</span> Writing</b></td>',
+      '                      </tr>',
+      '                      <tr>',
+      '                        <td><b><span style="font-size:18px;">&#9633;</span> Cover/Spine Issues</b></td>',
+      '                        <td><b><span style="font-size:18px;">&#9633;</span> Liquid/Stained</b></td>',
+      '                      </tr>',
+      '                      <tr>',
+      '                        <td><b><span style="font-size:18px;">&#9633;</span> Missing CD/DVD</b></td>',
+      '                        <td><b><span style="font-size:18px;">&#9633;</span> Other</b></td>',
+      '                      </tr>',
+      '                    </table>',
+      '                    <xsl:call-template name="spacer" />',
+      '                    <!-- END OPTIONAL NOTE AREA -->'
+    ].join('\n');
+
+    return templateText.replace(notePattern, checkboxBlock);
+  }
+
+  return templateText;
+}
+
 function applyTemplateReplacements(templateText, state) {
   let output = templateText.replaceAll('@@LOGO_URL@@', state.logoUrl || '');
 
   if (state.letterType === 'pull-slip-letter') {
     output = applyLabelChoice(output, state);
+    output = applyCreateDateChoice(output, state);
+    output = applyCreateDateFormat(output, state);
+    output = applyNoteAreaChoice(output, state);
   }
 
   return output;
@@ -435,6 +505,11 @@ form.addEventListener('submit', (event) => {
 form.elements.letterType.addEventListener('change', () => {
   syncLetterSpecificQuestions();
   preview.textContent = '';
+  renderedPreview.innerHTML = '';
+});
+
+form.elements.includeCreateDate.addEventListener('change', () => {
+  syncLetterSpecificQuestions();
 });
 
 resetButton.addEventListener('click', () => {
