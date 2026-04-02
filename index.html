@@ -71,6 +71,7 @@
             <input
               type="url"
               name="logoUrl"
+              required
               value=""
               placeholder="https://example.org/library-logo.png">
           </label>
@@ -100,6 +101,7 @@
           <button type="submit" class="button primary" id="submit-button">Submit</button>
           <button type="reset" class="button secondary" id="reset-button">Reset</button>
         </div>
+        <p class="scroll-note">↓ Scroll down to the next section. ↓</p>
       </form>
     </section>
 
@@ -107,12 +109,19 @@
       <div class="panel-heading">
         <h2>Generated XSL</h2>
         <p>Select all the below code, copy it, and paste it into the appropriate Letter in Alma.</p>
-        <button type="button" class="button primary copy-button" id="copy-xsl-button">
-          <span class="copy-icon" aria-hidden="true"></span>
-          <span class="copy-button-label">Copy</span>
-        </button>
+        <div class="preview-actions">
+          <button type="button" class="button primary copy-button" id="copy-xsl-button">
+            <span class="copy-icon" aria-hidden="true"></span>
+            <span class="copy-button-label">Copy</span>
+          </button>
+          <button type="button" class="button primary download-button" id="download-xsl-button">
+            <span class="download-icon" aria-hidden="true"></span>
+            <span>Download</span>
+          </button>
+        </div>
       </div>
       <pre id="xsl-preview"></pre>
+      <p class="scroll-note">↓ Scroll down to the next section. ↓</p>
     </section>
 
     <section class="panel rendered-panel">
@@ -121,6 +130,7 @@
         <p>This shows what the generated XSL produces when run against the sample XML.</p>
       </div>
       <div id="rendered-preview"></div>
+      <p class="scroll-note">↑ Scroll up to review or revise your responses. ↑</p>
     </section>
   </main>
 

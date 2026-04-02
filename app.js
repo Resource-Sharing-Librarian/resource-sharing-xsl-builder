@@ -2,14 +2,14 @@ const form = document.querySelector('#builder-form');
 const preview = document.querySelector('#xsl-preview');
 const renderedPreview = document.querySelector('#rendered-preview');
 const resetButton = document.querySelector('#reset-button');
-const submitButton = document.querySelector('#submit-button');
 const copyXslButton = document.querySelector('#copy-xsl-button');
-const copyXslButtonLabel = document.querySelector('.copy-button-label');
+const downloadXslButton = document.querySelector('#download-xsl-button');
 const letterSpecificQuestions = document.querySelector('#letter-specific-questions');
 const letterQuestionGroups = Array.from(document.querySelectorAll('[data-letter-question]'));
 const dependentQuestionGroups = Array.from(document.querySelectorAll('[data-dependent-question]'));
 const templateCache = {};
 let sampleXmlCache = '';
+let toastTimeoutId = null;
 
 const letterDefinitions = {
   'pull-slip-letter': {
@@ -163,6 +163,8 @@ function getLetterDefinition(letterType) {
 function syncLetterSpecificQuestions() {
   const selectedLetter = form.elements.letterType.value;
   const hasLetter = Boolean(selectedLetter);
+  const logoUrlField = form.elements.logoUrl;
+  const includeLogoField = form.elements.includeLogo;
 
   letterSpecificQuestions.hidden = !hasLetter;
   letterSpecificQuestions.style.display = hasLetter ? '' : 'none';
@@ -184,6 +186,18 @@ function syncLetterSpecificQuestions() {
     element.hidden = !shouldShow;
     element.style.display = shouldShow ? '' : 'none';
   });
+
+  if (logoUrlField && includeLogoField) {
+    const requiresLogoUrl = hasLetter
+      && selectedLetter === 'pull-slip-letter'
+      && includeLogoField.value === 'yes';
+
+    logoUrlField.required = requiresLogoUrl;
+
+    if (!requiresLogoUrl) {
+      logoUrlField.value = '';
+    }
+  }
 }
 
 function removeSectionByPattern(templateText, pattern) {
@@ -500,35 +514,62 @@ function applyCurrentDateToPreviewXml(xmlText) {
   return new XMLSerializer().serializeToString(xmlDoc);
 }
 
-function setCopyButtonLabel(label) {
-  copyXslButtonLabel.textContent = label;
-}
+function showToast(message, tone = 'success') {
+  let toast = document.querySelector('#app-toast');
 
-function resetCopyButtonLabel() {
-  window.clearTimeout(resetCopyButtonLabel.timeoutId);
-  resetCopyButtonLabel.timeoutId = window.setTimeout(() => {
-    setCopyButtonLabel('Copy');
-  }, 1800);
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'app-toast';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+
+  toast.textContent = message;
+  toast.classList.toggle('is-error', tone === 'error');
+  toast.classList.add('is-visible');
+
+  window.clearTimeout(toastTimeoutId);
+  toastTimeoutId = window.setTimeout(() => {
+    toast.classList.remove('is-visible');
+  }, 2200);
 }
 
 async function copyPreviewToClipboard() {
   const text = preview.textContent.trim();
 
   if (!text) {
-    setCopyButtonLabel('Nothing to Copy');
-    resetCopyButtonLabel();
+    showToast('Nothing to copy yet', 'error');
     return;
   }
 
   try {
     await navigator.clipboard.writeText(text);
-    setCopyButtonLabel('Copied');
+    showToast('Successfully copied');
   } catch (error) {
     console.error(error);
-    setCopyButtonLabel('Copy Failed');
+    showToast('Copy failed', 'error');
+  }
+}
+
+function downloadPreviewAsText() {
+  const text = preview.textContent.trim();
+
+  if (!text) {
+    showToast('Nothing to download yet', 'error');
+    return;
   }
 
-  resetCopyButtonLabel();
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = 'generated-xsl.txt';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showToast('Successfully downloaded');
 }
 
 async function renderTransformedOutput(xslText, state) {
@@ -569,7 +610,6 @@ async function render() {
   if (!state.letterType) {
     preview.textContent = '';
     renderedPreview.innerHTML = '';
-    submitButton.textContent = 'Submit';
     return;
   }
 
@@ -586,8 +626,7 @@ async function render() {
     preview.textContent = fallbackXsl;
     await renderTransformedOutput(fallbackXsl, state);
   }
-
-  submitButton.textContent = 'Generated';
+  showToast('Successfully generated');
 }
 
 form.addEventListener('submit', (event) => {
@@ -599,7 +638,6 @@ form.elements.letterType.addEventListener('change', () => {
   syncLetterSpecificQuestions();
   preview.textContent = '';
   renderedPreview.innerHTML = '';
-  submitButton.textContent = 'Submit';
 });
 
 form.elements.includeCreateDate.addEventListener('change', () => {
@@ -612,6 +650,10 @@ form.elements.includeLogo.addEventListener('change', () => {
 
 copyXslButton.addEventListener('click', () => {
   copyPreviewToClipboard();
+});
+
+downloadXslButton.addEventListener('click', () => {
+  downloadPreviewAsText();
 });
 
 resetButton.addEventListener('click', () => {
@@ -629,8 +671,6 @@ resetButton.addEventListener('click', () => {
     syncLetterSpecificQuestions();
     preview.textContent = '';
     renderedPreview.innerHTML = '';
-    submitButton.textContent = 'Submit';
-    setCopyButtonLabel('Copy');
   });
 });
 

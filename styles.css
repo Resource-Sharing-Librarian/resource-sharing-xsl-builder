@@ -120,11 +120,23 @@ h1 {
   margin-bottom: 6px;
 }
 
+.preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 .copy-button {
   align-items: center;
   display: inline-flex;
   gap: 10px;
-  margin-top: 8px;
+}
+
+.download-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 10px;
 }
 
 .copy-icon {
@@ -154,6 +166,36 @@ h1 {
 .copy-icon::after {
   left: 0;
   top: 5px;
+}
+
+.download-icon {
+  display: inline-block;
+  height: 18px;
+  position: relative;
+  width: 18px;
+}
+
+.download-icon::before,
+.download-icon::after {
+  content: "";
+  position: absolute;
+}
+
+.download-icon::before {
+  background: currentColor;
+  border-radius: 2px;
+  height: 10px;
+  left: 7px;
+  top: 1px;
+  width: 4px;
+}
+
+.download-icon::after {
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid currentColor;
+  left: 3px;
+  top: 8px;
 }
 
 .field-grid {
@@ -274,6 +316,42 @@ textarea {
 .rendered-panel #rendered-preview:empty::before {
   color: var(--muted);
   content: 'Rendered output will appear here after you generate the XSL.';
+}
+
+.scroll-note {
+  color: var(--muted);
+  font-size: 0.92rem;
+  margin: 16px 0 0;
+  text-align: center;
+}
+
+.toast {
+  background: #0d6b3f;
+  border-radius: 18px;
+  box-shadow: 0 12px 32px rgba(23, 50, 77, 0.18);
+  color: #ffffff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  left: 50%;
+  min-width: 280px;
+  opacity: 0;
+  padding: 18px 26px;
+  pointer-events: none;
+  position: fixed;
+  text-align: center;
+  top: 50%;
+  transform: translate(-50%, calc(-50% + 10px));
+  transition: opacity 160ms ease, transform 160ms ease;
+  z-index: 1000;
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+}
+
+.toast.is-error {
+  background: #a63636;
 }
 
 @media (max-width: 900px) {
