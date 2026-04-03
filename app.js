@@ -4,12 +4,29 @@ const renderedPreview = document.querySelector('#rendered-preview');
 const resetButton = document.querySelector('#reset-button');
 const copyXslButton = document.querySelector('#copy-xsl-button');
 const downloadXslButton = document.querySelector('#download-xsl-button');
+const previewSampleButtons = Array.from(document.querySelectorAll('[data-preview-sample]'));
 const letterSpecificQuestions = document.querySelector('#letter-specific-questions');
 const letterQuestionGroups = Array.from(document.querySelectorAll('[data-letter-question]'));
 const dependentQuestionGroups = Array.from(document.querySelectorAll('[data-dependent-question]'));
 const templateCache = {};
-let sampleXmlCache = '';
+const sampleXmlCache = {};
 let toastTimeoutId = null;
+let selectedPreviewSample = 'book';
+
+const previewSampleDefinitions = {
+  book: {
+    label: 'Book',
+    file: './sample-input.xml'
+  },
+  'book-chapter': {
+    label: 'Book Chapter',
+    file: './sample-book-chapter.xml'
+  },
+  article: {
+    label: 'Article',
+    file: './sample-article.xml'
+  }
+};
 
 const letterDefinitions = {
   'pull-slip-letter': {
@@ -447,19 +464,29 @@ async function getTemplateText(state) {
   return applyTemplateReplacements(templateCache[definition.templateFile], state);
 }
 
-async function getSampleXml() {
-  if (sampleXmlCache) {
-    return sampleXmlCache;
+function syncPreviewSampleButtons() {
+  previewSampleButtons.forEach((button) => {
+    const isActive = button.dataset.previewSample === selectedPreviewSample;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+  });
+}
+
+async function getSampleXml(sampleType = selectedPreviewSample) {
+  const sampleDefinition = previewSampleDefinitions[sampleType] || previewSampleDefinitions.book;
+
+  if (sampleXmlCache[sampleDefinition.file]) {
+    return sampleXmlCache[sampleDefinition.file];
   }
 
-  const response = await fetch('./sample-input.xml');
+  const response = await fetch(sampleDefinition.file);
 
   if (!response.ok) {
-    throw new Error('Failed to load sample-input.xml');
+    throw new Error(`Failed to load ${sampleDefinition.label} sample XML`);
   }
 
-  sampleXmlCache = await response.text();
-  return sampleXmlCache;
+  sampleXmlCache[sampleDefinition.file] = await response.text();
+  return sampleXmlCache[sampleDefinition.file];
 }
 
 function applyLibraryNameToPreviewXml(xmlText, state) {
@@ -512,6 +539,34 @@ function applyCurrentDateToPreviewXml(xmlText) {
   });
 
   return new XMLSerializer().serializeToString(xmlDoc);
+}
+
+function formatPreviewPlaceholderLabel(token) {
+  return token
+    .split('_')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+function cleanPreviewPlaceholderLabels(root) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const pattern = /@@([a-zA-Z0-9_]+)@@/g;
+  const textNodes = [];
+
+  while (walker.nextNode()) {
+    textNodes.push(walker.currentNode);
+  }
+
+  textNodes.forEach((node) => {
+    if (!node.nodeValue || !pattern.test(node.nodeValue)) {
+      pattern.lastIndex = 0;
+      return;
+    }
+
+    pattern.lastIndex = 0;
+    node.nodeValue = node.nodeValue.replace(pattern, (_, token) => formatPreviewPlaceholderLabel(token));
+  });
 }
 
 function showToast(message, tone = 'success') {
@@ -581,7 +636,7 @@ async function renderTransformedOutput(xslText, state) {
   }
 
   try {
-    let xmlText = await getSampleXml();
+    let xmlText = await getSampleXml(selectedPreviewSample);
     xmlText = applyLibraryNameToPreviewXml(xmlText, state);
     xmlText = applyCurrentDateToPreviewXml(xmlText);
     const parser = new DOMParser();
@@ -598,9 +653,10 @@ async function renderTransformedOutput(xslText, state) {
     const resultDocument = processor.transformToFragment(xmlDoc, document);
 
     renderedPreview.appendChild(resultDocument);
+    cleanPreviewPlaceholderLabels(renderedPreview);
   } catch (error) {
     console.error(error);
-    renderedPreview.textContent = 'Rendered preview is not available yet for this template.';
+    renderedPreview.textContent = `${previewSampleDefinitions[selectedPreviewSample]?.label || 'This'} sample preview is not available yet.`;
   }
 }
 
@@ -648,6 +704,22 @@ form.elements.includeLogo.addEventListener('change', () => {
   syncLetterSpecificQuestions();
 });
 
+previewSampleButtons.forEach((button) => {
+  button.addEventListener('click', async () => {
+    selectedPreviewSample = button.dataset.previewSample || 'book';
+    syncPreviewSampleButtons();
+
+    const xslText = preview.textContent.trim();
+
+    if (!xslText) {
+      return;
+    }
+
+    renderedPreview.textContent = 'Rendering sample output...';
+    await renderTransformedOutput(xslText, readFormState());
+  });
+});
+
 copyXslButton.addEventListener('click', () => {
   copyPreviewToClipboard();
 });
@@ -675,3 +747,4 @@ resetButton.addEventListener('click', () => {
 });
 
 syncLetterSpecificQuestions();
+syncPreviewSampleButtons();

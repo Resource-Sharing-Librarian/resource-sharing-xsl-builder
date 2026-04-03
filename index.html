@@ -127,7 +127,12 @@
     <section class="panel rendered-panel">
       <div class="panel-heading">
         <h2>Preview</h2>
-        <p>This shows what the generated XSL produces when run against the sample XML.</p>
+        <p>This shows what the generated XSL produces when run against the selected sample XML.</p>
+        <div class="preview-actions preview-sample-actions" role="group" aria-label="Preview sample type">
+          <button type="button" class="button primary preview-sample-button is-active" data-preview-sample="book">Book</button>
+          <button type="button" class="button primary preview-sample-button" data-preview-sample="book-chapter">Book Chapter</button>
+          <button type="button" class="button primary preview-sample-button" data-preview-sample="article">Article</button>
+        </div>
       </div>
       <div id="rendered-preview"></div>
       <p class="scroll-note">↑ Scroll up to review or revise your responses. ↑</p>

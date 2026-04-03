@@ -139,6 +139,24 @@ h1 {
   gap: 10px;
 }
 
+.preview-sample-actions {
+  margin-top: 12px;
+}
+
+.preview-sample-button {
+  box-shadow: 0 10px 24px rgba(247, 141, 30, 0.16);
+}
+
+.preview-sample-button.is-active {
+  background: var(--accent);
+  color: #ffffff;
+  box-shadow: 0 12px 28px rgba(247, 141, 30, 0.26);
+}
+
+.preview-sample-button:not(.is-active) {
+  opacity: 0.92;
+}
+
 .copy-icon {
   display: inline-block;
   height: 18px;
