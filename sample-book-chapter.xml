@@ -2,7 +2,7 @@
     <alternate_symbol/>
     <assignee/>
     <borrowing_library_address>
-        <city>Chico</city>
+        <city>Valhalla</city>
         <country>USA</country>
         <country_display>United States</country_display>
         <create_date>01/31/2026</create_date>
@@ -12,7 +12,7 @@
         <entity_action/>
         <library_id/>
         <library_unit_id/>
-        <line1>388 Orange Street</line1>
+        <line1>616 Bifrost Way</line1>
         <line2/>
         <line3/>
         <line4/>
@@ -21,20 +21,20 @@
         <modified_by_user/>
         <note/>
         <originating_id/>
-        <postal_code>95929-0295</postal_code>
+        <postal_code>00001</postal_code>
         <preferred>true</preferred>
         <segment_types_display>
             <string>Shipping</string>
         </segment_types_display>
         <start_date_beginning_of_day/>
-        <state_province>CA</state_province>
+        <state_province>Asgard</state_province>
         <user_address_types_display/>
     </borrowing_library_address>
     <enable_quick_print>true</enable_quick_print>
     <general_data>
         <address_c>None;None</address_c>
         <address_c>None;None</address_c>
-        <address_from>Meriam Library Circulation &lt;mlibcirc1@csuchico.edu&gt;</address_from>
+        <address_from>WSL-Circulation@csub.edu (Do Not Reply)</address_from>
         <current_date>02/17/2026</current_date>
         <current_time>12:32:31 PM PST</current_time>
         <letter_channel_info/>
@@ -42,7 +42,7 @@
         <letter_type>FulIncomingSlipLetter</letter_type>
         <subject>Resource Sharing Lending Slip</subject>
     </general_data>
-    <group_qualifier>01CALSCHI0050478</group_qualifier>
+    <group_qualifier>01MCU0000001</group_qualifier>
     <incoming_request>
         <message/>
         <pickup_partner_local_member_id/>
@@ -94,7 +94,7 @@
         <event_name/>
         <expiration_date/>
         <external_file_url/>
-        <external_request_id>2//01CALSCHI0050478</external_request_id>
+        <external_request_id>2//01MCU0000001</external_request_id>
         <format>DIGITAL</format>
         <format_str>DIGITAL</format_str>
         <forward_or_answer_available>false</forward_or_answer_available>
@@ -207,11 +207,11 @@
         <release_assign_link_visible>false</release_assign_link_visible>
         <request_completed>false</request_completed>
         <request_metadata>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
-&lt;dc:record xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;dc:rlterms_chapter&gt;5&lt;/dc:rlterms_chapter&gt;&lt;dc:lcc_number&gt;  2016025659&lt;/dc:lcc_number&gt;&lt;dc:rlterms_placeOfPublication&gt;New York :&lt;/dc:rlterms_placeOfPublication&gt;&lt;dc:rlterms_edition&gt;Second edition.&lt;/dc:rlterms_edition&gt;&lt;dc:title&gt;Crucible of struggle : a history of Mexican Americans from colonial times to the present era /&lt;/dc:title&gt;&lt;dc:oclc_number&gt;(OCoLC)952195819&lt;/dc:oclc_number&gt;&lt;dc:source&gt;Alma&lt;/dc:source&gt;&lt;dc:rlterms_pages&gt;144-176&lt;/dc:rlterms_pages&gt;&lt;dc:identifier_isbn&gt;9780190200787&lt;/dc:identifier_isbn&gt;&lt;dc:date&gt;[2017]&lt;/dc:date&gt;&lt;dc:creator&gt;Vargas, Zaragosa,&lt;/dc:creator&gt;&lt;dc:other_standard_id&gt;40026858783&lt;/dc:other_standard_id&gt;&lt;dc:publisher&gt;Oxford University Press,&lt;/dc:publisher&gt;&lt;dc:rlterms_callNumberType&gt;0&lt;/dc:rlterms_callNumberType&gt;&lt;/dc:record&gt;</request_metadata>
+&lt;dc:record xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;&lt;dc:rlterms_chapter&gt;5&lt;/dc:rlterms_chapter&gt;&lt;dc:lcc_number&gt;  2016025659&lt;/dc:lcc_number&gt;&lt;dc:rlterms_placeOfPublication&gt;New York :&lt;/dc:rlterms_placeOfPublication&gt;&lt;dc:rlterms_edition&gt;Second edition.&lt;/dc:rlterms_edition&gt;&lt;dc:title&gt;The Witch's Heart&lt;/dc:title&gt;&lt;dc:oclc_number&gt;(OCoLC)952195819&lt;/dc:oclc_number&gt;&lt;dc:source&gt;Alma&lt;/dc:source&gt;&lt;dc:rlterms_pages&gt;144-176&lt;/dc:rlterms_pages&gt;&lt;dc:identifier_isbn&gt;9780190200787&lt;/dc:identifier_isbn&gt;&lt;dc:date&gt;2021&lt;/dc:date&gt;&lt;dc:creator&gt;Gornichec, Genevieve&lt;/dc:creator&gt;&lt;dc:other_standard_id&gt;40026858783&lt;/dc:other_standard_id&gt;&lt;dc:publisher&gt;Oxford University Press,&lt;/dc:publisher&gt;&lt;dc:rlterms_callNumberType&gt;0&lt;/dc:rlterms_callNumberType&gt;&lt;/dc:record&gt;</request_metadata>
         <requested_barcode/>
         <requested_item/>
         <requested_media>7</requested_media>
-        <requester_email>rcarreno@mail.csuchico.edu</requester_email>
+        <requester_email>must_provide_email@01cals.com</requester_email>
         <resource_from_network>false</resource_from_network>
         <resource_slip_printed>false</resource_slip_printed>
         <resource_slip_reported>false</resource_slip_reported>
@@ -229,7 +229,7 @@
         <status>REQUEST_CREATED_LEND</status>
         <status_before_edit/>
         <terms_of_use/>
-        <title>Crucible of struggle : a history of Mexican Americans from colonial times to the present era /</title>
+        <title>The Witch&apos;s Heart</title>
         <tracking_number/>
         <transaction_result/>
         <type_value>Link</type_value>
@@ -243,25 +243,25 @@
             <accession_number/>
             <alt_call_number_type/>
             <attachments/>
-            <author>Vargas, Zaragosa,</author>
+            <author>Gornichec, Genevieve</author>
             <available_items>
                 <available_item>
                     <barcode>30200016951493</barcode>
-                    <call_number>E184.M5 V343 2017</call_number>
+                    <call_number>PS3607.O5979 W58 2021</call_number>
                     <inventory_number/>
                     <item_id>2392213970002904</item_id>
                     <item_policy>999</item_policy>
-                    <library_code>CSUChico</library_code>
-                    <library_name>Meriam Library</library_name>
-                    <location_code>Reserve2hr</location_code>
-                    <location_name>2 hour Reserve</location_name>
+                    <library_code>CSUB</library_code>
+                    <library_name>CSUB Library</library_name>
+                    <location_code>MAIN</location_code>
+                    <location_name>900th Floor</location_name>
                     <material_type>BOOK</material_type>
                     <public_note/>
                     <shelving_location/>
                 </available_item>
             </available_items>
             <barcode>30200016951493</barcode>
-            <call_number>E184.M5 V343 2017</call_number>
+            <call_number>PS3607.O5979 W58 2021</call_number>
             <call_number_type>0</call_number_type>
             <chron_i/>
             <chron_j/>
@@ -282,7 +282,7 @@
             <enum_g/>
             <enum_h/>
             <fulfillment_note/>
-            <imprint>New York : Oxford University Press, [2017]</imprint>
+            <imprint>New York : Oxford University Press, 2021</imprint>
             <internal_note1/>
             <internal_note2/>
             <internal_note3/>
@@ -292,26 +292,26 @@
             <issue_level_description/>
             <item_pid>2392213970002904</item_pid>
             <item_policy>Default</item_policy>
-            <library_code>CSUChico</library_code>
-            <library_name>Meriam Library</library_name>
-            <location_code>Reserve2hr</location_code>
-            <location_name>2 hour Reserve</location_name>
+            <library_code>CSUB</library_code>
+            <library_name>CSUB Library</library_name>
+            <location_code>MAIN</location_code>
+            <location_name>900th Floor</location_name>
             <material_type>BOOK</material_type>
             <optional_barcodes>
                 <string>30200016951493</string>
             </optional_barcodes>
             <owning_library_details>
                 <active_balance/>
-                <address1>400 W 1st Street </address1>
-                <address2/>
+                <address1>California State University, Bakersfield</address1>
+                <address2>Address</address2>
                 <address3/>
                 <address4/>
                 <address5/>
                 <blocks/>
-                <city>Chico</city>
+                <city>City</city>
                 <country>USA</country>
                 <country_display>United States</country_display>
-                <email>mlibcirc1@csuchico.edu</email>
+                <email/>
                 <first_name/>
                 <gender/>
                 <identifiers>
@@ -322,40 +322,40 @@
                 </identifiers>
                 <last_name/>
                 <middle_name/>
-                <name>Meriam Library</name>
-                <phone>530-898-6501</phone>
-                <postal_code>95929-0295</postal_code>
+                <name>CSUB Library</name>
+                <phone>(661) 654-3172</phone>
+                <postal_code>Postal Code</postal_code>
                 <preferred_first_name/>
                 <preferred_last_name/>
                 <preferred_middle_name/>
-                <state>CA</state>
+                <state>State</state>
                 <title/>
                 <user_group/>
                 <user_title/>
             </owning_library_details>
             <owning_library_id>423828350002904</owning_library_id>
-            <owning_library_name>Meriam Library</owning_library_name>
+            <owning_library_name>CSUB Library</owning_library_name>
             <parsed_alt_call_number/>
             <parsed_call_number/>
             <parsed_issue_level_description/>
-            <permanent_library>CSUChico Meriam Library</permanent_library>
-            <permanent_location>Main 3rd Floor - Main Collection</permanent_location>
+            <permanent_library/>
+            <permanent_location/>
             <profile_names/>
             <public_note/>
-            <publication_date>[2017]</publication_date>
+            <publication_date>2021</publication_date>
             <publication_place>New York :</publication_place>
             <publisher>Oxford University Press,</publisher>
             <retention_note/>
             <retention_reason/>
-            <row_call_number>$$h E184.M5 $$i V343 2017 </row_call_number>
+            <row_call_number>$$h PS3607.O5979 $$i W58 2021 </row_call_number>
             <shelving_location/>
             <statistics_note1/>
             <statistics_note2/>
             <statistics_note3/>
             <summary_holding_infos/>
             <suppressed>false</suppressed>
-            <title>Crucible of struggle : a history of Mexican Americans from colonial times to the present era /</title>
-            <title_abcnph>Crucible of struggle : a history of Mexican Americans from colonial times to the present era / Zaragosa Vargas, University of North Carolina, Chapel Hill.</title_abcnph>
+            <title>The Witch&apos;s Heart</title>
+            <title_abcnph>The Witch&apos;s Heart /</title_abcnph>
         </physical_item_display_for_printing>
     </items>
     <languages>
@@ -369,12 +369,12 @@
         <additional_person_name/>
         <additional_title/>
         <autho_initials/>
-        <author>Vargas, Zaragosa,</author>
+        <author>Gornichec, Genevieve</author>
         <availability/>
         <barcode/>
         <call_number/>
         <chapter>5</chapter>
-        <chapter_author/>
+        <chapter_author>Gornichec, Genevieve</chapter_author>
         <chapter_title/>
         <citation_type_name/>
         <composer/>
@@ -402,7 +402,7 @@
         <lcc_number>  2016025659</lcc_number>
         <material_type>Book</material_type>
         <music_part/>
-        <normalized_title>Crucible of struggle : a history of Mexican Americans from colonial times to the present era /</normalized_title>
+        <normalized_title>The Witch&apos;s Heart</normalized_title>
         <note/>
         <oclc_number>(OCoLC)952195819</oclc_number>
         <opus/>
@@ -413,7 +413,7 @@
         <place_of_publication>New York :</place_of_publication>
         <pmid/>
         <pnx_format/>
-        <publication_date>[2017]</publication_date>
+        <publication_date>2021</publication_date>
         <publisher>Oxford University Press,</publisher>
         <remote_record_id/>
         <series/>
@@ -431,7 +431,7 @@
         <start_page8/>
         <start_page9/>
         <subjects/>
-        <title>Crucible of struggle : a history of Mexican Americans from colonial times to the present era /</title>
+        <title>The Witch&apos;s Heart</title>
         <upper_title_link>true</upper_title_link>
         <url/>
         <volume/>
@@ -447,7 +447,7 @@
         <automatically_locate_resource>false</automatically_locate_resource>
         <bibliographic_titles/>
         <cancel_request_on_locate_failure>false</cancel_request_on_locate_failure>
-        <code>01CALS_CHI</code>
+        <code>01CALS_UBA</code>
         <code_rfid/>
         <country/>
         <create_date/>
@@ -459,7 +459,7 @@
         <default_move_loctaion_id/>
         <default_pickup_loctaion_id/>
         <default_printer/>
-        <description>California State University, Chico</description>
+        <description>California State University, Bakersfield</description>
         <digital_objects/>
         <digital_storage_size/>
         <disable_call_number_calculation>false</disable_call_number_calculation>
@@ -483,7 +483,7 @@
         <library_unit_id/>
         <modification_date_allow_null/>
         <modified_by_user/>
-        <name>CSU, Chico</name>
+        <name>CSU Bakersfield</name>
         <named_users/>
         <org_scope>
             <customer_id>2900</customer_id>
@@ -495,7 +495,7 @@
         <organization_path>2900.2904</organization_path>
         <organization_type>INSTITUTION</organization_type>
         <parent_org_id>2900</parent_org_id>
-        <path>01CALS.01CALS_CHI</path>
+        <path>01CALS.01CALS_UBA</path>
         <personal_delivery_by_other_libraries>false</personal_delivery_by_other_libraries>
         <phone/>
         <premium_sandbox>0</premium_sandbox>
@@ -517,15 +517,15 @@
         <temp_inactive_borrowing>false</temp_inactive_borrowing>
         <temp_inactive_lending>false</temp_inactive_lending>
         <unique_ejournal_titles/>
-        <url_mapping_prefix>csu-chico</url_mapping_prefix>
+        <url_mapping_prefix>csu-bakersfield</url_mapping_prefix>
     </organization_unit>
-    <partner_code>CSU, Chico - Meriam Library</partner_code>
+    <partner_code>Asgard Realm University</partner_code>
     <partner_integration_type>NGRS</partner_integration_type>
-    <partner_name>CSU, Chico - Meriam Library</partner_name>
+    <partner_name>Asgard Realm University</partner_name>
     <partner_system_type>NGRS</partner_system_type>
     <pickup_partner_address/>
     <pod_id/>
-    <pod_name/>
+    <pod_name>9 Realms Pod</pod_name>
     <receivers>
         <receiver>
             <attached_to_entity_id>736869650002904</attached_to_entity_id>
@@ -539,7 +539,7 @@
                 <create_date_allow_null/>
                 <created_by_user/>
                 <description>Circulation printer</description>
-                <email>ALMACIRC@csuchico.edu</email>
+                <email/>
                 <entity_action/>
                 <library_id>423828350002904</library_id>
                 <library_unit_id/>
