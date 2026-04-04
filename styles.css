@@ -228,6 +228,108 @@ h1 {
   gap: 8px;
 }
 
+.form-subsection {
+  border-top: 1px solid var(--line);
+  margin-top: 4px;
+  padding-top: 16px;
+}
+
+.form-subsection h3 {
+  color: var(--brand);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.metadata-section {
+  border: 0;
+  margin: 0 0 20px;
+  padding: 0;
+}
+
+.metadata-section legend {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.metadata-group + .metadata-group {
+  margin-top: 16px;
+}
+
+.metadata-group h4 {
+  color: var(--brand);
+  font-size: 0.92rem;
+  margin: 0 0 10px;
+}
+
+.metadata-option-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.metadata-option {
+  cursor: pointer;
+  position: relative;
+}
+
+.metadata-option input {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.metadata-option span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--brand);
+  display: inline-flex;
+  font-size: 0.92rem;
+  font-weight: 700;
+  gap: 10px;
+  justify-content: flex-start;
+  min-height: 52px;
+  padding: 10px 16px;
+  width: 100%;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.metadata-option span::before {
+  background: #ffffff;
+  border: 2px solid var(--brand);
+  border-radius: 999px;
+  content: "";
+  display: inline-block;
+  height: 16px;
+  width: 16px;
+}
+
+.metadata-option input:checked + span {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 12px 24px rgba(247, 141, 30, 0.18);
+  color: #ffffff;
+}
+
+.metadata-option input:checked + span::before {
+  background: #ffffff;
+  border-color: #ffffff;
+  box-shadow: inset 0 0 0 4px var(--accent);
+}
+
+.metadata-option input:focus-visible + span {
+  box-shadow: 0 0 0 3px rgba(0, 62, 126, 0.18);
+}
+
+@media (max-width: 900px) {
+  .metadata-option-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .field-wide {
   grid-column: 1 / -1;
 }

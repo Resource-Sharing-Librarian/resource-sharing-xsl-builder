@@ -439,6 +439,14 @@
                     <tr><td style="width:350px;"><b>Pod:&#160;RapidR</b></td></tr>
                   </xsl:if>
 
+                  <xsl:if test="normalize-space(notification_data/incoming_request/requester_email) != ''">
+                    <tr>
+                      <td style="width:350px;">
+                        <b>@@requester_email@@:</b><xsl:text> </xsl:text><xsl:value-of select="notification_data/incoming_request/requester_email" />
+                      </td>
+                    </tr>
+                  </xsl:if>
+
                   <!-- BEGIN OPTIONAL CREATE DATE -->
                   <xsl:if test="normalize-space(notification_data/incoming_request/create_date) != ''">
                     <tr>
@@ -456,6 +464,33 @@
 
                 <!-- Logo for all printouts -->
                 <xsl:call-template name="print-library-logo" />
+
+                <table role="presentation" cellspacing="0" cellpadding="2" border="0" style="width:350px; max-width:350px; table-layout:fixed;">
+                  <tr>
+                    <td style="width:350px;">
+                      <div class="emphBox" style="border:2px solid #000; padding:6px;">
+                        <div>
+                          <b>Location:&#160;</b>
+                          <span class="locCallValue">
+                            <xsl:call-template name="pick-location">
+                              <xsl:with-param name="avail" select="notification_data/items/physical_item_display_for_printing/available_items/available_item" />
+                            </xsl:call-template>
+                          </span>
+                        </div>
+                        <div>
+                          <b>Call Number:&#160;</b>
+                          <b class="locCallValue">
+                            <xsl:call-template name="pick-call-number">
+                              <xsl:with-param name="avail" select="notification_data/items/physical_item_display_for_printing/available_items/available_item" />
+                            </xsl:call-template>
+                          </b>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </table>
+
+                <xsl:call-template name="spacer" />
                 <!-- ===== END SECTION 08 - PARTNER/POD/LOGO ===== -->
 
 
@@ -476,15 +511,17 @@
                     <xsl:variable name="availItem"
                       select="notification_data/items/physical_item_display_for_printing/available_items/available_item" />
 
-                    <tr>
-                      <td style="width:350px;">
-                        <b>Title:&#160;</b>
-                        <xsl:call-template name="truncate-text">
-                          <xsl:with-param name="text" select="normalize-space(notification_data/metadata/title)" />
-                          <xsl:with-param name="max" select="100" />
-                        </xsl:call-template>
-                      </td>
-                    </tr>
+                    <xsl:if test="normalize-space(notification_data/metadata/title) != ''">
+                      <tr>
+                        <td style="width:350px;">
+                          <b>Title:&#160;</b>
+                          <xsl:call-template name="truncate-text">
+                            <xsl:with-param name="text" select="normalize-space(notification_data/metadata/title)" />
+                            <xsl:with-param name="max" select="100" />
+                          </xsl:call-template>
+                        </td>
+                      </tr>
+                    </xsl:if>
 
                     <xsl:if test="normalize-space(notification_data/metadata/author) != ''">
                       <tr>
@@ -504,32 +541,81 @@
                       </tr>
                     </xsl:if>
 
-                    <!-- ==========================================================
-                         SECTION 10A - EMPHASIS BOX (LOCATION + CALL NUMBER)
-                         ========================================================== -->
+                    <xsl:if test="normalize-space(notification_data/metadata/issue) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@issue@@:&#160;</b><xsl:value-of select="notification_data/metadata/issue" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/metadata/pages) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@pages@@:&#160;</b><xsl:value-of select="notification_data/metadata/pages" /></td>
+                      </tr>
+                    </xsl:if>
+
                     <tr>
-                      <td style="width:350px;">
-                        <div class="emphBox" style="border:2px solid #000; padding:6px;">
-                          <div>
-                            <b>Location:&#160;</b>
-                            <span class="locCallValue">
-                              <xsl:call-template name="pick-location">
-                                <xsl:with-param name="avail" select="$availItem" />
-                              </xsl:call-template>
-                            </span>
-                          </div>
-                          <div>
-                            <b>Call Number:&#160;</b>
-                            <b class="locCallValue">
-                              <xsl:call-template name="pick-call-number">
-                                <xsl:with-param name="avail" select="$availItem" />
-                              </xsl:call-template>
-                            </b>
-                          </div>
-                        </div>
-                      </td>
+                      <td style="width:350px;"><b>@@borrower_reference@@:</b><xsl:text> </xsl:text><xsl:call-template name="id-info-hdr" /></td>
                     </tr>
-                    <!-- ===== END SECTION 10A - EMPHASIS BOX ===== -->
+
+                    <xsl:if test="normalize-space(notification_data/incoming_request/needed_by) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@date_needed_by@@:</b><xsl:text> </xsl:text><xsl:value-of select="notification_data/incoming_request/needed_by" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/incoming_request/note) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@request_note@@:</b><xsl:text> </xsl:text><xsl:value-of select="notification_data/incoming_request/note" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/metadata/oclc_number) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@oclc_number@@:&#160;</b><xsl:value-of select="notification_data/metadata/oclc_number" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/metadata/publication_date) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@year@@:&#160;</b><xsl:value-of select="notification_data/metadata/publication_date" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/metadata/publisher) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@publisher@@:&#160;</b><xsl:value-of select="notification_data/metadata/publisher" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/metadata/place_of_publication) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@place_of_publication@@:&#160;</b><xsl:value-of select="notification_data/metadata/place_of_publication" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="notification_data/items/physical_item_display_for_printing/shelving_location/string">
+                      <tr>
+                        <td style="width:350px;">
+                          <b>@@shelving_location_for_item@@:</b>
+                          <xsl:text> </xsl:text>
+                          <xsl:for-each select="notification_data/items/physical_item_display_for_printing/shelving_location/string">
+                            <xsl:value-of select="." />
+                          </xsl:for-each>
+                        </td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/metadata/edition) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@edition@@:&#160;</b><xsl:value-of select="notification_data/metadata/edition" /></td>
+                      </tr>
+                    </xsl:if>
+
+                    <xsl:if test="normalize-space(notification_data/metadata/isbn) != ''">
+                      <tr>
+                        <td style="width:350px;"><b>@@isbn@@:&#160;</b><xsl:value-of select="notification_data/metadata/isbn" /></td>
+                      </tr>
+                    </xsl:if>
 
                     <xsl:call-template name="spacer" />
 
@@ -791,7 +877,7 @@
                       <xsl:if test="normalize-space(notification_data/metadata/normalized_title) != ''">
                         <tr>
                           <td>
-                            <b>Article:&#160;</b>
+                            <b>@@article_title@@:&#160;</b>
                             <xsl:call-template name="truncate-text">
                               <xsl:with-param name="text" select="normalize-space(notification_data/metadata/normalized_title)" />
                               <xsl:with-param name="max" select="100" />
@@ -800,17 +886,17 @@
                         </tr>
                       </xsl:if>
 
-                      <tr>
-                        <td>
-                          <b>Author:&#160;</b>
-                          <xsl:call-template name="truncate-text">
-                            <xsl:with-param name="text" select="normalize-space(notification_data/metadata/author)" />
-                            <xsl:with-param name="max" select="90" />
-                          </xsl:call-template>
-                        </td>
-                      </tr>
-
-                      <xsl:call-template name="spacer" />
+                      <xsl:if test="normalize-space(notification_data/metadata/author) != ''">
+                        <tr>
+                          <td>
+                            <b>Author:&#160;</b>
+                            <xsl:call-template name="truncate-text">
+                              <xsl:with-param name="text" select="normalize-space(notification_data/metadata/author)" />
+                              <xsl:with-param name="max" select="90" />
+                            </xsl:call-template>
+                          </td>
+                        </tr>
+                      </xsl:if>
 
                       <xsl:if test="normalize-space(notification_data/metadata/publication_date) != ''">
                         <tr><td><b>@@year@@:&#160;</b><xsl:value-of select="notification_data/metadata/publication_date" /></td></tr>
@@ -828,30 +914,31 @@
                         <tr><td><b>@@pages@@:&#160;</b><xsl:value-of select="notification_data/metadata/pages" /></td></tr>
                       </xsl:if>
 
-                      <xsl:call-template name="spacer" />
+                      <xsl:if test="normalize-space(notification_data/metadata/issn) != ''">
+                        <tr><td><b>@@issn@@:&#160;</b><xsl:value-of select="notification_data/metadata/issn" /></td></tr>
+                      </xsl:if>
 
-                      <tr>
-                        <td>
-                          <div class="emphBox" style="border:2px solid #000; padding:6px;">
-                            <div>
-                              <b>Location:&#160;</b>
-                              <span class="locCallValue">
-                                <xsl:call-template name="pick-location">
-                                  <xsl:with-param name="avail" select="notification_data/items/physical_item_display_for_printing/available_items/available_item" />
-                                </xsl:call-template>
-                              </span>
-                            </div>
-                            <div>
-                              <b>Call Number:&#160;</b>
-                              <b class="locCallValue">
-                                <xsl:call-template name="pick-call-number">
-                                  <xsl:with-param name="avail" select="notification_data/items/physical_item_display_for_printing/available_items/available_item" />
-                                </xsl:call-template>
-                              </b>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                      <xsl:if test="normalize-space(notification_data/metadata/oclc_number) != ''">
+                        <tr><td><b>@@oclc_number@@:&#160;</b><xsl:value-of select="notification_data/metadata/oclc_number" /></td></tr>
+                      </xsl:if>
+
+                      <tr><td><b>@@borrower_reference@@:</b><xsl:text> </xsl:text><xsl:call-template name="id-info-hdr" /></td></tr>
+
+                      <xsl:if test="normalize-space(notification_data/incoming_request/needed_by) != ''">
+                        <tr><td><b>@@date_needed_by@@:</b><xsl:text> </xsl:text><xsl:value-of select="notification_data/incoming_request/needed_by" /></td></tr>
+                      </xsl:if>
+
+                      <xsl:if test="normalize-space(notification_data/incoming_request/note) != ''">
+                        <tr><td><b>@@request_note@@:</b><xsl:text> </xsl:text><xsl:value-of select="notification_data/incoming_request/note" /></td></tr>
+                      </xsl:if>
+
+                      <xsl:if test="normalize-space(notification_data/metadata/publisher) != ''">
+                        <tr><td><b>@@publisher@@:&#160;</b><xsl:value-of select="notification_data/metadata/publisher" /></td></tr>
+                      </xsl:if>
+
+                      <xsl:if test="normalize-space(notification_data/metadata/place_of_publication) != ''">
+                        <tr><td><b>@@place_of_publication@@:&#160;</b><xsl:value-of select="notification_data/metadata/place_of_publication" /></td></tr>
+                      </xsl:if>
 
                       <xsl:if test="notification_data/items = ''">
                         <tr><td style="font-size:20px">ELECTRONIC</td></tr>
@@ -888,10 +975,26 @@
                         </tr>
                       </xsl:if>
 
+                      <xsl:if test="normalize-space(notification_data/metadata/author) != ''">
+                        <tr>
+                          <td>
+                            <b>Author:&#160;</b>
+                            <xsl:call-template name="truncate-text">
+                              <xsl:with-param name="text" select="normalize-space(notification_data/metadata/author)" />
+                              <xsl:with-param name="max" select="90" />
+                            </xsl:call-template>
+                          </td>
+                        </tr>
+                      </xsl:if>
+
+                      <xsl:if test="normalize-space(notification_data/metadata/publication_date) != ''">
+                        <tr><td><b>@@year@@:&#160;</b><xsl:value-of select="notification_data/metadata/publication_date" /></td></tr>
+                      </xsl:if>
+
                       <xsl:if test="normalize-space(notification_data/metadata/chapter) != ''">
                         <tr>
                           <td>
-                            <b>@@chapter_title@@:&#160;</b>
+                            <b>@@chapter_number@@:&#160;</b>
                             <xsl:call-template name="truncate-text">
                               <xsl:with-param name="text" select="normalize-space(notification_data/metadata/chapter)" />
                               <xsl:with-param name="max" select="100" />
@@ -924,44 +1027,39 @@
                         </tr>
                       </xsl:if>
 
-                      <tr><td /></tr>
+                      <xsl:if test="normalize-space(notification_data/metadata/pages) != ''">
+                        <tr><td><b>@@pages@@:&#160;</b><xsl:value-of select="notification_data/metadata/pages" /></td></tr>
+                      </xsl:if>
+
+                      <xsl:if test="normalize-space(notification_data/metadata/publisher) != ''">
+                        <tr><td><b>@@publisher@@:&#160;</b><xsl:value-of select="notification_data/metadata/publisher" /></td></tr>
+                      </xsl:if>
+
+                      <xsl:if test="normalize-space(notification_data/metadata/place_of_publication) != ''">
+                        <tr><td><b>@@place_of_publication@@:&#160;</b><xsl:value-of select="notification_data/metadata/place_of_publication" /></td></tr>
+                      </xsl:if>
+
+                      <xsl:if test="normalize-space(notification_data/metadata/oclc_number) != ''">
+                        <tr><td><b>@@oclc_number@@:&#160;</b><xsl:value-of select="notification_data/metadata/oclc_number" /></td></tr>
+                      </xsl:if>
 
                       <xsl:if test="normalize-space(notification_data/metadata/volume) != ''">
                         <tr><td><b>@@volume@@:&#160;</b><xsl:value-of select="notification_data/metadata/volume" /></td></tr>
                       </xsl:if>
 
-                      <xsl:if test="normalize-space(notification_data/items/physical_item_display_for_printing/publication_date) != ''">
-                        <tr><td><b>@@year@@:&#160;</b><xsl:value-of select="notification_data/items/physical_item_display_for_printing/publication_date" /></td></tr>
+                      <xsl:if test="normalize-space(notification_data/metadata/issue) != ''">
+                        <tr><td><b>@@issue@@:&#160;</b><xsl:value-of select="notification_data/metadata/issue" /></td></tr>
                       </xsl:if>
 
-                      <xsl:if test="normalize-space(notification_data/metadata/pages) != ''">
-                        <tr><td><b>@@pages@@:&#160;</b><xsl:value-of select="notification_data/metadata/pages" /></td></tr>
+                      <tr><td><b>@@borrower_reference@@:</b><xsl:text> </xsl:text><xsl:call-template name="id-info-hdr" /></td></tr>
+
+                      <xsl:if test="normalize-space(notification_data/incoming_request/needed_by) != ''">
+                        <tr><td><b>@@date_needed_by@@:</b><xsl:text> </xsl:text><xsl:value-of select="notification_data/incoming_request/needed_by" /></td></tr>
                       </xsl:if>
 
-                      <tr><td /></tr>
-
-                      <tr>
-                        <td>
-                          <div class="emphBox" style="border:2px solid #000; padding:6px;">
-                            <div>
-                              <b>Location:&#160;</b>
-                              <span class="locCallValue">
-                                <xsl:call-template name="pick-location">
-                                  <xsl:with-param name="avail" select="notification_data/items/physical_item_display_for_printing/available_items/available_item" />
-                                </xsl:call-template>
-                              </span>
-                            </div>
-                            <div>
-                              <b>Call Number:&#160;</b>
-                              <b class="locCallValue">
-                                <xsl:call-template name="pick-call-number">
-                                  <xsl:with-param name="avail" select="notification_data/items/physical_item_display_for_printing/available_items/available_item" />
-                                </xsl:call-template>
-                              </b>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                      <xsl:if test="normalize-space(notification_data/incoming_request/note) != ''">
+                        <tr><td><b>@@request_note@@:</b><xsl:text> </xsl:text><xsl:value-of select="notification_data/incoming_request/note" /></td></tr>
+                      </xsl:if>
 
                       <xsl:if test="notification_data/items = ''">
                         <tr><td style="font-size:20px">ELECTRONIC</td></tr>

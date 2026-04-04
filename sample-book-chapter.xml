@@ -211,7 +211,7 @@
         <requested_barcode/>
         <requested_item/>
         <requested_media>7</requested_media>
-        <requester_email>must_provide_email@01cals.com</requester_email>
+        <requester_email>InterlibraryLoan@ARU.edu</requester_email>
         <resource_from_network>false</resource_from_network>
         <resource_slip_printed>false</resource_slip_printed>
         <resource_slip_reported>false</resource_slip_reported>

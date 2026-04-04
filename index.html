@@ -36,6 +36,10 @@
         </div>
 
         <div class="field-grid" id="letter-specific-questions" hidden>
+          <div class="form-subsection field-wide" data-letter-question="pull-slip-letter">
+            <h3>Slip Header</h3>
+          </div>
+
           <label class="field field-wide" data-letter-question="pull-slip-letter">
             <span>Do you want the request creation date added to your slip?</span>
             <select name="includeCreateDate">
@@ -75,6 +79,64 @@
               value=""
               placeholder="https://example.org/library-logo.png">
           </label>
+
+          <div class="form-subsection field-wide" data-letter-question="pull-slip-letter">
+            <h3>Metadata</h3>
+          </div>
+
+          <fieldset class="metadata-section field-wide" data-letter-question="pull-slip-letter">
+            <legend>Select the metadata you want on the slip.</legend>
+
+            <div class="metadata-group">
+              <h4>Shared Metadata</h4>
+              <div class="metadata-option-grid">
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="title"><span>Title</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="author"><span>Author</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="volume"><span>Volume</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="issue"><span>Issue</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="pages"><span>Pages</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="borrower-reference"><span>Borrower Reference</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="date-needed-by"><span>Date Needed By</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="request-note"><span>Request Note</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="requester-email"><span>Requester Email</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="oclc-number"><span>OCLC Number</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="publication-date"><span>Publication Date</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="publisher"><span>Publisher</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="place-of-publication"><span>Place of Publication</span></label>
+              </div>
+            </div>
+
+            <div class="metadata-group">
+              <h4>Physical-Only Metadata</h4>
+              <div class="metadata-option-grid">
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="shelving-location-for-item"><span>Shelving Location for Item</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="edition"><span>Edition</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="isbn"><span>ISBN</span></label>
+              </div>
+            </div>
+
+            <div class="metadata-group">
+              <h4>Book Chapter-Only Metadata</h4>
+              <div class="metadata-option-grid">
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="chapter-number"><span>Chapter Number</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="chapter-title"><span>Chapter Title</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="chapter-author"><span>Chapter Author</span></label>
+              </div>
+            </div>
+
+            <div class="metadata-group">
+              <h4>Article-Only Metadata</h4>
+              <div class="metadata-option-grid">
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="article-title"><span>Article Title</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="journal-title"><span>Journal Title</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="issn"><span>ISSN</span></label>
+              </div>
+            </div>
+          </fieldset>
+
+          <div class="form-subsection field-wide" data-letter-question="pull-slip-letter">
+            <h3>Slips for Requests for Physical Items</h3>
+          </div>
 
           <label class="field field-wide" data-letter-question="pull-slip-letter">
             <span>Do you want an area on the printed letter to communicate issues or pre-existing damage to the Borrowing Library? What format?</span>

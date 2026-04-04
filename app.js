@@ -542,10 +542,11 @@ function applyCurrentDateToPreviewXml(xmlText) {
 }
 
 function formatPreviewPlaceholderLabel(token) {
+  const acronymWords = new Set(['oclc', 'issn', 'isbn']);
   return token
     .split('_')
     .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => (acronymWords.has(word) ? word.toUpperCase() : word.charAt(0).toUpperCase() + word.slice(1)))
     .join(' ');
 }
 

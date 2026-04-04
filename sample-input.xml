@@ -166,7 +166,7 @@
         <requested_barcode/>
         <requested_item/>
         <requested_media>7</requested_media>
-        <requester_email>must_provide_email@01cals.com</requester_email>
+        <requester_email>InterlibraryLoan@ARU.edu</requester_email>
         <resource_from_network>false</resource_from_network>
         <resource_slip_printed>true</resource_slip_printed>
         <resource_slip_reported>false</resource_slip_reported>
@@ -314,62 +314,62 @@
     <letter_texts/>
     <level_of_service/>
     <metadata>
-        <additional_author/>
+        <additional_author>Thor Odinson</additional_author>
         <additional_person_name>Miley, Karla Krogsrud,</additional_person_name>
-        <additional_title/>
-        <autho_initials/>
+        <additional_title>A Novel of Witchcraft and Norse Myth</additional_title>
+        <autho_initials>G.G.</autho_initials>
         <author>Gornichec, Genevieve</author>
-        <availability/>
-        <barcode/>
-        <call_number/>
-        <chapter/>
-        <chapter_author/>
-        <chapter_title/>
-        <citation_type_name/>
-        <composer/>
-        <creator_and_publisher/>
-        <creator_and_publisher_for_export/>
-        <doi/>
+        <availability>Available</availability>
+        <barcode>30350013764462</barcode>
+        <call_number>PS3607.O5979 W58 2021</call_number>
+        <chapter>12</chapter>
+        <chapter_author>Gornichec, Genevieve</chapter_author>
+        <chapter_title>The Binding at World&apos;s End</chapter_title>
+        <citation_type_name>Book</citation_type_name>
+        <composer>Not Applicable</composer>
+        <creator_and_publisher>Gornichec, Genevieve ; Ace Books</creator_and_publisher>
+        <creator_and_publisher_for_export>Gornichec, Genevieve ; Ace Books</creator_and_publisher_for_export>
+        <doi>10.0000/witchsheart.2021</doi>
         <edition>Ninth edition.</edition>
-        <editor/>
-        <electronic_location/>
-        <end_page/>
+        <editor>Frigga Allmother</editor>
+        <electronic_location>https://example.org/the-witchs-heart</electronic_location>
+        <end_page>320</end_page>
         <end_page2/>
-        <identifier/>
+        <identifier>9781250773586</identifier>
         <isbn>9780134695792</isbn>
-        <issn/>
-        <issue/>
-        <journal_title/>
+        <issn>2768-0001</issn>
+        <issue>1</issue>
+        <journal_title>Journal of the Arcane</journal_title>
         <lcc_number>  2017058093</lcc_number>
         <material_type>Book</material_type>
-        <music_part/>
+        <music_part>None</music_part>
         <normalized_title>The Witch&apos;s Heart</normalized_title>
-        <note/>
+        <note>A fictional sample record for preview testing.</note>
         <oclc_number>(OCoLC)1019836267</oclc_number>
-        <opus/>
-        <other_standard_id/>
-        <pages/>
-        <pages_normalized/>
-        <part/>
+        <opus>1</opus>
+        <other_standard_id>ASG-2021-WH</other_standard_id>
+        <pages>1-320</pages>
+        <pages_normalized>1-320</pages_normalized>
+        <part>Part I</part>
         <place_of_publication>NY, NY :</place_of_publication>
-        <pmid/>
-        <pnx_format/>
+        <pmid>00000001</pmid>
+        <pnx_format>book</pnx_format>
         <publication_date>[2018]</publication_date>
         <publisher>Pearson,</publisher>
-        <remote_record_id/>
-        <series/>
-        <series_title_number/>
-        <song_movement/>
+        <remote_record_id>RRM-00001</remote_record_id>
+        <series>The Nine Realms Saga</series>
+        <series_title_number>1</series_title_number>
+        <song_movement>None</song_movement>
         <source>Alma</source>
-        <start_page/>
+        <start_page>1</start_page>
         <start_page2/>
-        <subjects/>
+        <subjects>Witches; Norse mythology; Fantasy fiction</subjects>
         <title>The Witch&apos;s Heart</title>
         <upper_title_link>true</upper_title_link>
-        <url/>
-        <volume/>
-        <volume_bk/>
-        <year/>
+        <url>https://example.org/the-witchs-heart</url>
+        <volume>1</volume>
+        <volume_bk>1</volume_bk>
+        <year>2021</year>
     </metadata>
     <normalize_sum_strategy/>
     <organization_unit>
