@@ -13,6 +13,11 @@ const templateCache = {};
 const sampleXmlCache = {};
 let toastTimeoutId = null;
 let selectedPreviewSample = 'book';
+const PREVIEW_PAGE_WIDTH = 816;
+const PREVIEW_PAGE_HEIGHT = 1056;
+const PREVIEW_PAGE_MARGIN = 48;
+const PREVIEW_CONTENT_WIDTH = PREVIEW_PAGE_WIDTH - (PREVIEW_PAGE_MARGIN * 2);
+const PREVIEW_CONTENT_HEIGHT = PREVIEW_PAGE_HEIGHT - (PREVIEW_PAGE_MARGIN * 2);
 
 const previewSampleDefinitions = {
   book: {
@@ -620,6 +625,55 @@ function cleanPreviewPlaceholderLabels(root) {
   });
 }
 
+function buildPaginatedPreview(container) {
+  const sourceMarkup = container.innerHTML.trim();
+
+  if (!sourceMarkup) {
+    return;
+  }
+
+  const measureHost = document.createElement('div');
+  measureHost.className = 'preview-measure-host';
+  const measurePage = document.createElement('div');
+  measurePage.className = 'preview-measure-page';
+  const measureContent = document.createElement('div');
+  measureContent.className = 'preview-measure-content';
+  measureContent.style.width = `${PREVIEW_CONTENT_WIDTH}px`;
+  measureContent.innerHTML = sourceMarkup;
+  measurePage.appendChild(measureContent);
+  measureHost.appendChild(measurePage);
+  document.body.appendChild(measureHost);
+
+  const availableWidth = Math.max(320, renderedPreview.clientWidth - 24);
+  const scale = Math.min(1, availableWidth / PREVIEW_PAGE_WIDTH);
+  const totalHeight = Math.max(measureContent.scrollHeight, PREVIEW_CONTENT_HEIGHT);
+  const pageCount = Math.max(1, Math.ceil(totalHeight / PREVIEW_CONTENT_HEIGHT));
+
+  document.body.removeChild(measureHost);
+
+  container.innerHTML = '';
+  container.classList.add('is-paginated');
+
+  for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
+    const page = document.createElement('div');
+    page.className = 'preview-paper';
+    page.style.width = `${PREVIEW_PAGE_WIDTH * scale}px`;
+    page.style.height = `${PREVIEW_PAGE_HEIGHT * scale}px`;
+
+    const viewport = document.createElement('div');
+    viewport.className = 'preview-paper-viewport';
+
+    const content = document.createElement('div');
+    content.className = 'preview-paper-content';
+    content.style.width = `${PREVIEW_CONTENT_WIDTH}px`;
+    content.style.transform = `translateY(-${pageIndex * PREVIEW_CONTENT_HEIGHT}px) scale(${scale})`;
+    content.innerHTML = sourceMarkup;
+    viewport.appendChild(content);
+    page.appendChild(viewport);
+    container.appendChild(page);
+  }
+}
+
 function showToast(message, tone = 'success') {
   let toast = document.querySelector('#app-toast');
 
@@ -705,6 +759,7 @@ async function renderTransformedOutput(xslText, state) {
 
     renderedPreview.appendChild(resultDocument);
     cleanPreviewPlaceholderLabels(renderedPreview);
+    buildPaginatedPreview(renderedPreview);
   } catch (error) {
     console.error(error);
     renderedPreview.textContent = `${previewSampleDefinitions[selectedPreviewSample]?.label || 'This'} sample preview is not available yet.`;
