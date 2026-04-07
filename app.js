@@ -382,6 +382,10 @@ function applySelectedLabelChoice(templateText, state) {
     return removeLabelBlockAtIndex(templateText, labelStarts[0]);
   }
 
+  if (state.labelChoice === 'both-labels') {
+    return templateText;
+  }
+
   return removeLabelBlockAtIndex(
     removeLabelBlockAtIndex(templateText, labelStarts[1]),
     labelStarts[0]
@@ -527,7 +531,7 @@ function shouldUseSectionSplitLayout(state) {
   return state.letterType === 'pull-slip-letter'
     && state.labelChoice !== ''
     && state.labelChoice !== 'no-label'
-    && (metadataCount >= 8 || hasCheckboxConditionReport);
+    && (state.labelChoice === 'both-labels' || metadataCount >= 8 || hasCheckboxConditionReport);
 }
 
 function shouldUseDigitalSectionSplitLayout(state) {
@@ -557,18 +561,23 @@ function shouldUseDigitalSectionSplitLayout(state) {
 }
 
 function extractSelectedPhysicalLabelBlock(templateText) {
-  const block = findLabelBlockFromStart(templateText, findAllLabelTableStarts(templateText)[0]);
+  const blocks = findAllLabelTableStarts(templateText)
+    .map((startIndex) => findLabelBlockFromStart(templateText, startIndex))
+    .filter(Boolean);
 
-  if (block) {
+  if (!blocks.length) {
     return {
-      labelBlock: block.text,
-      templateWithoutLabel: `${templateText.slice(0, block.start)}${templateText.slice(block.end)}`
+      labelBlocks: [],
+      templateWithoutLabel: templateText
     };
   }
 
   return {
-    labelBlock: '',
-    templateWithoutLabel: templateText
+    labelBlocks: blocks.map((block) => block.text),
+    templateWithoutLabel: blocks
+      .slice()
+      .sort((a, b) => b.start - a.start)
+      .reduce((output, block) => `${output.slice(0, block.start)}${output.slice(block.end)}`, templateText)
   };
 }
 
@@ -650,6 +659,44 @@ function normalizeMovedLabelBlock(labelBlock) {
       'style="font-size:18px;width:350px"',
       'style="font-size:18px;width:336px; overflow-wrap:normal; word-break:normal; hyphens:none;"'
     );
+}
+
+function buildMovedPhysicalLabelBlocks(state, labelBlocks) {
+  if (!labelBlocks.length) {
+    return '';
+  }
+
+  const normalizedBlocks = labelBlocks.map((labelBlock) => normalizeMovedLabelBlock(labelBlock));
+
+  if (state.labelChoice === 'both-labels' && normalizedBlocks.length >= 2) {
+    return [
+      '<div style="width:336px; min-width:336px; max-width:336px; font-weight:bold;">---Shipping Label---</div>',
+      '<div style="height:6px;"></div>',
+      normalizedBlocks[0],
+      '<div style="height:28px;"></div>',
+      '<div style="width:336px; min-width:336px; max-width:336px; font-weight:bold;">---Return Label---</div>',
+      '<div style="height:6px;"></div>',
+      normalizedBlocks[1]
+    ].join('\n');
+  }
+
+  if (state.labelChoice === 'shipping-label') {
+    return [
+      '<div style="width:336px; min-width:336px; max-width:336px; font-weight:bold;">---Shipping Label---</div>',
+      '<div style="height:6px;"></div>',
+      normalizedBlocks[0]
+    ].join('\n');
+  }
+
+  if (state.labelChoice === 'return-label') {
+    return [
+      '<div style="width:336px; min-width:336px; max-width:336px; font-weight:bold;">---Return Label---</div>',
+      '<div style="height:6px;"></div>',
+      normalizedBlocks[0]
+    ].join('\n');
+  }
+
+  return normalizedBlocks.join('\n');
 }
 
 function extractSection08Block(templateText) {
@@ -931,7 +978,7 @@ function applySectionSplitLayout(templateText, state) {
     return templateText.replaceAll('@@HEADER_ADJACENT_LABEL_CELL@@', '');
   }
 
-  const { labelBlock, templateWithoutLabel } = extractSelectedPhysicalLabelBlock(physicalSectionBlock);
+  const { labelBlocks, templateWithoutLabel } = extractSelectedPhysicalLabelBlock(physicalSectionBlock);
   const { templateWithoutNote } = extractOptionalNoteAreaBlock(templateWithoutLabel);
   let output = templateWithoutPhysicalSection;
 
@@ -966,8 +1013,8 @@ function applySectionSplitLayout(templateText, state) {
   );
 
   const sideNoteBlock = buildSplitSideNoteBlock(state);
-  const normalizedLabelBlock = normalizeMovedLabelBlock(labelBlock);
-  const sideParts = [sideNoteBlock, normalizedLabelBlock].filter(Boolean).map((part) => part.trim()).join('\n');
+  const movedLabelBlocks = buildMovedPhysicalLabelBlocks(state, labelBlocks);
+  const sideParts = [sideNoteBlock, movedLabelBlocks].filter(Boolean).map((part) => part.trim()).join('\n');
   const sideColumnBlock = [
     '<div style="width:336px; min-width:336px; max-width:336px; margin:0; text-align:left;">',
     sideParts,
