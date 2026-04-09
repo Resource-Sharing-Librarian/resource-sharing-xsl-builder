@@ -4,6 +4,7 @@ const renderedPreview = document.querySelector('#rendered-preview');
 const resetButton = document.querySelector('#reset-button');
 const copyXslButton = document.querySelector('#copy-xsl-button');
 const downloadXslButton = document.querySelector('#download-xsl-button');
+const generateAccessibilityStatementButton = document.querySelector('#generate-accessibility-statement-button');
 const previewSampleButtons = Array.from(document.querySelectorAll('[data-preview-sample]'));
 const metadataSelectAllButtons = Array.from(document.querySelectorAll('.metadata-select-all'));
 const letterSpecificQuestions = document.querySelector('#letter-specific-questions');
@@ -18,6 +19,12 @@ const PREVIEW_PAGE_HEIGHT = 1056;
 const PREVIEW_PAGE_MARGIN = 48;
 const PREVIEW_CONTENT_WIDTH = PREVIEW_PAGE_WIDTH - (PREVIEW_PAGE_MARGIN * 2);
 const PREVIEW_CONTENT_HEIGHT = PREVIEW_PAGE_HEIGHT - (PREVIEW_PAGE_MARGIN * 2);
+const DEFAULT_ACCESSIBILITY_STATEMENT = `<<Library>> is committed to accessibility. If you have any problems accessing this material, please contact the <<Accessibility Contact>> at <<Contact Phone>> or <<Contact Email>>.`;
+const DEFAULT_COPYRIGHT_STATEMENT = `The copyright law of the United States (Title 17, United States Code), governs the making of photocopies or other reproductions of copyrighted material.
+Under certain conditions specified in the law, libraries and archives are authorized to furnish a photocopy or other reproduction.
+One of these specified conditions is that the photocopy or reproduction is not to be "used for any purpose other than private study, scholarship, or research."
+If a user makes a request for, or later uses, a photocopy or reproduction for purposes in excess of "fair use," that user may be liable for copyright infringement.
+This institution reserves the right to refuse to accept a copying order, if, in its judgment, fulfillment of the order would involve violation of copyright law.`;
 const PREVIEW_GROUP_QUALIFIER_BARCODE_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="224" height="104" viewBox="0 0 224 104">
   <rect width="224" height="104" fill="#fff"/>
@@ -668,6 +675,16 @@ function readFormState() {
     includeCreateDate: form.elements.includeCreateDate.value,
     createDateFormat: form.elements.createDateFormat.value,
     noteAreaType: form.elements.noteAreaType.value,
+    includeCustomMessage: getActiveFieldValue('includeCustomMessage', selectedLetter),
+    customMessageText: form.elements.customMessageText?.value || '',
+    includeAccessibilityStatement: getActiveFieldValue('includeAccessibilityStatement', selectedLetter),
+    accessibilityStatementMode: getActiveFieldValue('accessibilityStatementMode', selectedLetter),
+    accessibilityContact: form.elements.accessibilityContact?.value || '',
+    accessibilityPhone: form.elements.accessibilityPhone?.value || '',
+    accessibilityEmail: form.elements.accessibilityEmail?.value || '',
+    accessibilityCustomStatementText: form.elements.accessibilityCustomStatementText?.value || '',
+    includeCopyrightStatement: getActiveFieldValue('includeCopyrightStatement', selectedLetter),
+    copyrightStatementText: form.elements.copyrightStatementText?.value || DEFAULT_COPYRIGHT_STATEMENT,
     metadataOptions: Array.from(form.querySelectorAll('input[name="metadataOptions"]:checked')).map((input) => input.value)
   };
 }
@@ -775,13 +792,19 @@ function syncLetterSpecificQuestions() {
   dependentQuestionGroups.forEach((element) => {
     const controllingField = form.elements[element.dataset.dependentQuestion];
     const expectedValue = element.dataset.dependentValue;
+    const secondaryControllingField = element.dataset.dependentQuestionSecondary
+      ? form.elements[element.dataset.dependentQuestionSecondary]
+      : null;
+    const secondaryExpectedValue = element.dataset.dependentValueSecondary;
     const shouldShow = hasLetter
       && questionAppliesToLetter(element, selectedLetter)
       && controllingField
       && controllingField.value === expectedValue;
+    const shouldShowSecondary = !secondaryControllingField
+      || secondaryControllingField.value === secondaryExpectedValue;
 
-    element.hidden = !shouldShow;
-    element.style.display = shouldShow ? '' : 'none';
+    element.hidden = !(shouldShow && shouldShowSecondary);
+    element.style.display = shouldShow && shouldShowSecondary ? '' : 'none';
   });
 
   if (logoUrlField && includeLogoField) {
@@ -806,6 +829,27 @@ function syncLetterSpecificQuestions() {
     )
   ) {
     customHoldShelfLetterField.value = '';
+  }
+
+  if (
+    form.elements.accessibilityStatementPreview
+    && (
+      !hasLetter
+      || selectedLetter !== 'pull-slip-letter'
+      || form.elements.includeAccessibilityStatement?.value !== 'yes'
+      || form.elements.accessibilityStatementMode?.value !== 'default'
+    )
+  ) {
+    form.elements.accessibilityStatementPreview.value = '';
+  }
+
+  if (form.elements.accessibilityContact) {
+    const requiresAccessibilityContact = hasLetter
+      && selectedLetter === 'pull-slip-letter'
+      && form.elements.includeAccessibilityStatement?.value === 'yes'
+      && form.elements.accessibilityStatementMode?.value === 'default';
+
+    form.elements.accessibilityContact.required = requiresAccessibilityContact;
   }
 }
 
@@ -907,6 +951,215 @@ function applyCreateDateChoice(templateText, state) {
 
 function applyCreateDateFormat(templateText, state) {
   return templateText.replaceAll('@@CREATE_DATE_FORMAT@@', state.createDateFormat || 'numerical');
+}
+
+function formatAccessibilityPhoneNumber(phone) {
+  const digits = (phone || '').replace(/\D/g, '');
+
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+
+  if (digits.length === 11 && digits.startsWith('1')) {
+    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+
+  return (phone || '').trim();
+}
+
+function resolveAccessibilityStatementTemplate(state) {
+  if (state.accessibilityStatementMode === 'custom') {
+    return state.accessibilityCustomStatementText || '';
+  }
+
+  const phone = formatAccessibilityPhoneNumber(state.accessibilityPhone);
+  const email = (state.accessibilityEmail || '').trim();
+  let statement = DEFAULT_ACCESSIBILITY_STATEMENT
+    .replaceAll('<<Library>>', state.libraryName || 'Library Name')
+    .replaceAll('<<Accessibility Contact>>', state.accessibilityContact || 'Accessibility Contact')
+    .replaceAll('<<Contact Phone>>', phone)
+    .replaceAll('<<Contact Email>>', email);
+
+  if (!phone && email) {
+    statement = statement.replace(/at\s+or\s+/g, 'at ');
+  }
+
+  if (phone && !email) {
+    statement = statement.replace(/\s+or\s*\./g, '.');
+  }
+
+  if (!phone && !email) {
+    statement = statement.replace(/\s+at\s*\.\s*$/g, '.');
+  }
+
+  return statement;
+}
+
+function hasValidAccessibilityContactInfo(state) {
+  if (
+    state.letterType !== 'pull-slip-letter'
+    || state.includeAccessibilityStatement !== 'yes'
+    || state.accessibilityStatementMode !== 'default'
+  ) {
+    return true;
+  }
+
+  return Boolean((state.accessibilityPhone || '').trim() || (state.accessibilityEmail || '').trim());
+}
+
+function hasValidAccessibilityContactName(state) {
+  if (
+    state.letterType !== 'pull-slip-letter'
+    || state.includeAccessibilityStatement !== 'yes'
+    || state.accessibilityStatementMode !== 'default'
+  ) {
+    return true;
+  }
+
+  return Boolean((state.accessibilityContact || '').trim());
+}
+
+function updateAccessibilityStatementPreview() {
+  const previewField = form.elements.accessibilityStatementPreview;
+
+  if (!previewField) {
+    return;
+  }
+
+  previewField.value = resolveAccessibilityStatementTemplate(readFormState());
+}
+
+function buildAccessibilityStatementBlock(state) {
+  const email = (state.accessibilityEmail || '').trim();
+  let resolvedStatement = resolveAccessibilityStatementTemplate(state);
+  let escapedStatement = escapeXml(resolvedStatement);
+
+  if (email) {
+    const escapedEmail = escapeXml(email);
+    const mailtoLink = `<a href="mailto:${escapedEmail}">${escapedEmail}</a>`;
+    escapedStatement = escapedStatement.replaceAll(escapedEmail, mailtoLink);
+  }
+
+  const lines = escapedStatement
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const content = lines
+    .map((line, index) => `${index > 0 ? '                          <br />\n' : ''}                          ${line}`)
+    .join('');
+
+  return [
+    '                    <!-- ========================================================',
+    '                         SECTION 11C - ACCESSIBILITY NOTICE',
+    '                         ======================================================== -->',
+    '                    <xsl:call-template name="spacer" />',
+    '                    <tr>',
+    '                      <td>',
+    '                        <font size="1">',
+    content,
+    '                        </font>',
+    '                      </td>',
+    '                    </tr>',
+    '                    <!-- ===== END SECTION 11C - ACCESSIBILITY NOTICE ===== -->'
+  ].join('\n');
+}
+
+function applyAccessibilityStatementChoice(templateText, state) {
+  const accessibilityPattern = /[ \t]*<!-- [=\s]*\r?\n[ \t]*SECTION 11C - ACCESSIBILITY NOTICE\r?\n[ \t]*[=\s]*-->[\s\S]*?<!-- ===== END SECTION 11C - ACCESSIBILITY NOTICE ===== -->[^\S\r\n]*/;
+  const copyrightAnchor = '                    <!-- ========================================================\n                         SECTION 11D - COPYRIGHT NOTICE\n                         ======================================================== -->';
+
+  if (state.letterType !== 'pull-slip-letter') {
+    return templateText;
+  }
+
+  let output = removeSectionByPattern(templateText, accessibilityPattern);
+
+  if (state.includeAccessibilityStatement !== 'yes') {
+    return output;
+  }
+
+  return output.replace(copyrightAnchor, `${buildAccessibilityStatementBlock(state)}\n${copyrightAnchor}`);
+}
+
+function buildCopyrightStatementBlock(copyrightText) {
+  const lines = (copyrightText || DEFAULT_COPYRIGHT_STATEMENT)
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const content = lines
+    .map((line, index) => `${index > 0 ? '                          <br />\n' : ''}                          ${escapeXml(line)}`)
+    .join('');
+
+  return [
+    '                    <!-- ========================================================',
+    '                         SECTION 11D - COPYRIGHT NOTICE',
+    '                         ======================================================== -->',
+    '                    <xsl:call-template name="spacer" />',
+    '                    <tr>',
+    '                      <td>',
+    '                        <font size="1">',
+    content,
+    '                        </font>',
+    '                      </td>',
+    '                    </tr>',
+    '                    <!-- ===== END SECTION 11D - COPYRIGHT NOTICE ===== -->'
+  ].join('\n');
+}
+
+function applyCopyrightStatementChoice(templateText, state) {
+  const copyrightPattern = /[ \t]*<!-- [=\s]*\r?\n[ \t]*SECTION 11D - COPYRIGHT NOTICE\r?\n[ \t]*[=\s]*-->[\s\S]*?<!-- ===== END SECTION 11D - COPYRIGHT NOTICE ===== -->[^\S\r\n]*/;
+
+  if (state.letterType !== 'pull-slip-letter') {
+    return templateText;
+  }
+
+  if (state.includeCopyrightStatement === 'no') {
+    return removeSectionByPattern(templateText, copyrightPattern);
+  }
+
+  if (state.includeCopyrightStatement === 'yes') {
+    return templateText.replace(copyrightPattern, `${buildCopyrightStatementBlock(state.copyrightStatementText)}\n`);
+  }
+
+  return templateText;
+}
+
+function buildCustomMessageBlock(state) {
+  const lines = (state.customMessageText || '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const content = lines
+    .map((line, index) => `${index > 0 ? '                        <br />\n' : ''}                        ${escapeXml(line)}`)
+    .join('');
+
+  return [
+    '                    <!-- BEGIN OPTIONAL CUSTOM MESSAGE -->',
+    '                    <tr>',
+    '                      <td style="width:350px;">',
+    content,
+    '                      </td>',
+    '                    </tr>',
+    '                    <xsl:call-template name="spacer" />',
+    '                    <!-- END OPTIONAL CUSTOM MESSAGE -->'
+  ].join('\n');
+}
+
+function applyCustomMessageChoice(templateText, state) {
+  const customMessagePattern = /[ \t]*<!-- BEGIN OPTIONAL CUSTOM MESSAGE -->[\s\S]*?<!-- END OPTIONAL CUSTOM MESSAGE -->[^\S\r\n]*/g;
+
+  if (state.letterType !== 'pull-slip-letter') {
+    return templateText;
+  }
+
+  if (state.includeCustomMessage !== 'yes') {
+    return removeSectionByPattern(templateText, customMessagePattern);
+  }
+
+  return templateText.replace(customMessagePattern, `${buildCustomMessageBlock(state)}\n`);
 }
 
 function applyNoteAreaChoice(templateText, state) {
@@ -1035,15 +1288,14 @@ function shouldUseSectionSplitLayout(state) {
   const metadataCount = (state.metadataOptions || []).filter((option) => PHYSICAL_SPLIT_ELIGIBLE_METADATA.has(option)).length;
   const hasCheckboxConditionReport = state.noteAreaType === 'checkboxes';
   return ['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)
-    && state.labelChoice !== ''
-    && state.labelChoice !== 'no-label'
-    && (state.labelChoice === 'both-labels' || metadataCount >= 8 || hasCheckboxConditionReport);
+    && ((state.labelChoice !== '' && state.labelChoice !== 'no-label') || (state.letterType === 'pull-slip-letter' && state.includeCustomMessage === 'yes'))
+    && (state.labelChoice === 'both-labels' || metadataCount >= 8 || hasCheckboxConditionReport || (state.letterType === 'pull-slip-letter' && state.includeCustomMessage === 'yes'));
 }
 
 function shouldUseDigitalSectionSplitLayout(state) {
   const metadataCount = (state.metadataOptions || []).filter((option) => DIGITAL_SPLIT_ELIGIBLE_METADATA.has(option)).length;
 
-  return state.letterType === 'pull-slip-letter' && metadataCount > 5;
+  return state.letterType === 'pull-slip-letter' && (metadataCount > 5 || state.includeCustomMessage === 'yes');
 }
 
 function extractSelectedPhysicalLabelBlock(templateText) {
@@ -1081,6 +1333,23 @@ function extractOptionalNoteAreaBlock(templateText) {
   return {
     noteBlock: match[0],
     templateWithoutNote: templateText.replace(notePattern, '')
+  };
+}
+
+function extractOptionalCustomMessageBlock(templateText) {
+  const customMessagePattern = /[ \t]*<!-- BEGIN OPTIONAL CUSTOM MESSAGE -->[\s\S]*?<!-- END OPTIONAL CUSTOM MESSAGE -->[^\S\r\n]*/;
+  const match = templateText.match(customMessagePattern);
+
+  if (!match) {
+    return {
+      customMessageBlock: '',
+      templateWithoutCustomMessage: templateText
+    };
+  }
+
+  return {
+    customMessageBlock: match[0],
+    templateWithoutCustomMessage: templateText.replace(customMessagePattern, '')
   };
 }
 
@@ -1305,8 +1574,31 @@ function stripDigitalChapterWrapper(chapterBlock) {
 
 function stripDigitalCopyrightWrapper(copyrightBlock) {
   return copyrightBlock
-    .replace(/^\s*<!-- [=\s]*SECTION 11C - COPYRIGHT NOTICE[\s\S]*?-->\s*/, '')
-    .replace(/\s*<!-- ===== END SECTION 11C - COPYRIGHT NOTICE ===== -->\s*$/, '');
+    .replace(/^\s*<!-- [=\s]*SECTION 11D - COPYRIGHT NOTICE[\s\S]*?-->\s*/, '')
+    .replace(/\s*<!-- ===== END SECTION 11D - COPYRIGHT NOTICE ===== -->\s*$/, '');
+}
+
+function normalizeMovedCustomMessageBlock(customMessageBlock) {
+  if (!customMessageBlock) {
+    return '';
+  }
+
+  return customMessageBlock
+    .replaceAll('width:350px;', 'width:336px; min-width:336px; max-width:336px;')
+    .replaceAll('width:350px', 'width:336px')
+    .concat('\n                          <div style="height:12px;"></div>');
+}
+
+function stripDigitalAccessibilityWrapper(accessibilityBlock) {
+  return accessibilityBlock
+    .replace(/^\s*<!-- [=\s]*SECTION 11C - ACCESSIBILITY NOTICE[\s\S]*?-->\s*/, '')
+    .replace(/\s*<!-- ===== END SECTION 11C - ACCESSIBILITY NOTICE ===== -->\s*$/, '');
+}
+
+function stripDigitalCustomMessageWrapper(customMessageBlock) {
+  return customMessageBlock
+    .replace(/^\s*<!-- BEGIN OPTIONAL CUSTOM MESSAGE -->\s*/, '')
+    .replace(/\s*<!-- END OPTIONAL CUSTOM MESSAGE -->\s*$/, '');
 }
 
 function splitDigitalInternalBarcode(innerBlock) {
@@ -1324,6 +1616,18 @@ function splitDigitalInternalBarcode(innerBlock) {
     leftContent: innerBlock.replace(pattern, '').trim(),
     barcodeBlock: match[1].trim()
   };
+}
+
+function normalizeDigitalBarcodeBlock(barcodeBlock, hasCustomMessage) {
+  if (!barcodeBlock) {
+    return '';
+  }
+
+  if (!hasCustomMessage) {
+    return barcodeBlock;
+  }
+
+  return barcodeBlock.replace(/^(\s*<xsl:call-template name="spacer" \/>\s*)+/, '');
 }
 
 function applyDigitalSectionSplitLayout(templateText, state) {
@@ -1354,34 +1658,58 @@ function applyDigitalSectionSplitLayout(templateText, state) {
     '<!-- ===== END SECTION 11B - DIGITAL BOOK/CHAPTER ===== -->'
   );
 
-  const copyrightExtract = extractMarkedBlock(
-    chapterExtract.textWithoutBlock,
-    'SECTION 11C - COPYRIGHT NOTICE',
-    '<!-- ===== END SECTION 11C - COPYRIGHT NOTICE ===== -->'
+  const articleCustomMessageExtract = extractMarkedBlock(
+    stripDigitalArticleWrapper(articleExtract.block),
+    'BEGIN OPTIONAL CUSTOM MESSAGE',
+    '<!-- END OPTIONAL CUSTOM MESSAGE -->'
   );
 
-  if (!chapterExtract.block || !copyrightExtract.block) {
+  const chapterCustomMessageExtract = extractMarkedBlock(
+    stripDigitalChapterWrapper(chapterExtract.block),
+    'BEGIN OPTIONAL CUSTOM MESSAGE',
+    '<!-- END OPTIONAL CUSTOM MESSAGE -->'
+  );
+
+  const accessibilityExtract = extractMarkedBlock(
+    chapterExtract.textWithoutBlock,
+    'SECTION 11C - ACCESSIBILITY NOTICE',
+    '<!-- ===== END SECTION 11C - ACCESSIBILITY NOTICE ===== -->'
+  );
+
+  const copyrightExtract = extractMarkedBlock(
+    accessibilityExtract.block ? accessibilityExtract.textWithoutBlock : chapterExtract.textWithoutBlock,
+    'SECTION 11D - COPYRIGHT NOTICE',
+    '<!-- ===== END SECTION 11D - COPYRIGHT NOTICE ===== -->'
+  );
+
+  if (!chapterExtract.block) {
     return templateText;
   }
 
-  const articleInner = stripDigitalArticleWrapper(articleExtract.block);
-  const chapterInner = stripDigitalChapterWrapper(chapterExtract.block);
-  const copyrightInner = stripDigitalCopyrightWrapper(copyrightExtract.block).trim();
+  const articleInner = articleCustomMessageExtract.textWithoutBlock || stripDigitalArticleWrapper(articleExtract.block);
+  const chapterInner = chapterCustomMessageExtract.textWithoutBlock || stripDigitalChapterWrapper(chapterExtract.block);
+  const accessibilityInner = accessibilityExtract.block ? stripDigitalAccessibilityWrapper(accessibilityExtract.block).trim() : '';
+  const copyrightInner = copyrightExtract.block ? stripDigitalCopyrightWrapper(copyrightExtract.block).trim() : '';
+  const articleCustomMessageInner = articleCustomMessageExtract.block ? stripDigitalCustomMessageWrapper(articleCustomMessageExtract.block).trim() : '';
+  const chapterCustomMessageInner = chapterCustomMessageExtract.block ? stripDigitalCustomMessageWrapper(chapterCustomMessageExtract.block).trim() : '';
 
   const articleSplit = splitDigitalInternalBarcode(articleInner);
   const chapterSplit = splitDigitalInternalBarcode(chapterInner);
 
-  const buildDigitalRightBlock = (barcodeBlock) => [
+  const buildDigitalRightBlock = (customMessageBlock, barcodeBlock) => [
     '                      <div style="position:absolute; top:0; left:366px; width:336px !important; min-width:336px; max-width:336px; vertical-align:top; text-align:left;">',
     '                        <table role="presentation" cellspacing="0" cellpadding="2" border="0" style="width:336px; max-width:336px; table-layout:fixed;">',
-    barcodeBlock || '',
-    '                          <tr><td style="height:12px;"></td></tr>',
+    customMessageBlock || '',
+    normalizeDigitalBarcodeBlock(barcodeBlock, Boolean(customMessageBlock)),
+    accessibilityInner ? '                          <tr><td style="height:12px;"></td></tr>' : '',
+    accessibilityInner,
+    copyrightInner ? '                          <tr><td style="height:12px;"></td></tr>' : '',
     copyrightInner,
     '                        </table>',
     '                      </div>'
   ].filter(Boolean).join('\n');
 
-  const buildDigitalSplitBlock = (testExpression, leftContent, barcodeBlock) => [
+  const buildDigitalSplitBlock = (testExpression, leftContent, customMessageBlock, barcodeBlock) => [
     `                    <xsl:if test="${testExpression}">`,
     '                      <div style="position:relative; width:702px !important; max-width:702px !important; margin:0;">',
     '                        <div style="width:336px !important; min-width:336px; max-width:336px; margin-right:366px; vertical-align:top; text-align:left;">',
@@ -1389,7 +1717,7 @@ function applyDigitalSectionSplitLayout(templateText, state) {
     leftContent,
     '                          </table>',
     '                        </div>',
-    buildDigitalRightBlock(barcodeBlock),
+    buildDigitalRightBlock(customMessageBlock, barcodeBlock),
     '                      </div>',
     '                    </xsl:if>'
   ].join('\n');
@@ -1397,9 +1725,9 @@ function applyDigitalSectionSplitLayout(templateText, state) {
   const rebuiltDigitalBlock = [
     '                  <!-- ===== BEGIN SECTION 11 - DIGITAL ===== -->',
     `                  <xsl:if test="notification_data/incoming_request/format = 'DIGITAL'">`,
-    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Article'", articleSplit.leftContent, articleSplit.barcodeBlock),
+    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Article'", articleSplit.leftContent, articleCustomMessageInner, articleSplit.barcodeBlock),
     '',
-    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Book'", chapterSplit.leftContent, chapterSplit.barcodeBlock),
+    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Book'", chapterSplit.leftContent, chapterCustomMessageInner, chapterSplit.barcodeBlock),
     '                  </xsl:if>',
     '                  <!-- ===== END SECTION 11 - DIGITAL ===== -->'
   ].join('\n');
@@ -1479,7 +1807,8 @@ function applySectionSplitLayout(templateText, state) {
   }
 
   const { labelBlocks, templateWithoutLabel } = extractSelectedPhysicalLabelBlock(physicalSectionBlock);
-  const { templateWithoutNote } = extractOptionalNoteAreaBlock(templateWithoutLabel);
+  const { customMessageBlock, templateWithoutCustomMessage } = extractOptionalCustomMessageBlock(templateWithoutLabel);
+  const { templateWithoutNote } = extractOptionalNoteAreaBlock(templateWithoutCustomMessage);
   let output = templateWithoutPhysicalSection;
 
   output = output.replace(
@@ -1513,8 +1842,9 @@ function applySectionSplitLayout(templateText, state) {
   );
 
   const sideNoteBlock = buildSplitSideNoteBlock(state);
+  const movedCustomMessageBlock = normalizeMovedCustomMessageBlock(customMessageBlock);
   const movedLabelBlocks = buildMovedPhysicalLabelBlocks(state, labelBlocks);
-  const sideParts = [sideNoteBlock, movedLabelBlocks].filter(Boolean).map((part) => part.trim()).join('\n');
+  const sideParts = [movedCustomMessageBlock, sideNoteBlock, movedLabelBlocks].filter(Boolean).map((part) => part.trim()).join('\n');
   const sideColumnBlock = [
     '<div style="width:336px; min-width:336px; max-width:336px; margin:0; text-align:left;">',
     sideParts,
@@ -1587,6 +1917,12 @@ function applyTemplateReplacements(templateText, state) {
 
   if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
     output = applyNoteAreaChoice(output, state);
+  }
+
+  if (state.letterType === 'pull-slip-letter') {
+    output = applyCustomMessageChoice(output, state);
+    output = applyAccessibilityStatementChoice(output, state);
+    output = applyCopyrightStatementChoice(output, state);
   }
 
   if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
@@ -2268,6 +2604,16 @@ async function render() {
     return;
   }
 
+  if (!hasValidAccessibilityContactInfo(state)) {
+    showToast('Phone or email is required', 'error');
+    return;
+  }
+
+  if (!hasValidAccessibilityContactName(state)) {
+    showToast('Accessibility Contact is required', 'error');
+    return;
+  }
+
   preview.textContent = 'Loading template preview...';
   renderedPreview.textContent = 'Rendering sample output...';
 
@@ -2303,6 +2649,26 @@ form.elements.hasCustomHoldShelfLetter.addEventListener('change', () => {
 
 form.elements.includeLogo.addEventListener('change', () => {
   syncLetterSpecificQuestions();
+});
+
+form.elements.includeCopyrightStatement.addEventListener('change', () => {
+  syncLetterSpecificQuestions();
+});
+
+form.elements.includeAccessibilityStatement.addEventListener('change', () => {
+  syncLetterSpecificQuestions();
+});
+
+form.elements.includeCustomMessage?.addEventListener('change', () => {
+  syncLetterSpecificQuestions();
+});
+
+form.elements.accessibilityStatementMode?.addEventListener('change', () => {
+  syncLetterSpecificQuestions();
+});
+
+generateAccessibilityStatementButton?.addEventListener('click', () => {
+  updateAccessibilityStatementPreview();
 });
 
 previewSampleButtons.forEach((button) => {

@@ -664,6 +664,14 @@
                       <xsl:call-template name="spacer" />
                     </xsl:if>
 
+                    <!-- BEGIN OPTIONAL CUSTOM MESSAGE -->
+                    <tr>
+                      <td style="width:350px;">@@CUSTOM_MESSAGE@@</td>
+                    </tr>
+                    <xsl:call-template name="spacer" />
+                    <xsl:call-template name="spacer" />
+                    <!-- END OPTIONAL CUSTOM MESSAGE -->
+
                     <!-- BEGIN OPTIONAL NOTE AREA -->
                     <tr>
                       <td style="width:350px;">
@@ -850,7 +858,7 @@
                       <tr>
                         <td style="font-size:18px;width:350px">
                           <font size="2">Ship To: </font>
-                          <br /><br />
+                          <br />
 
                           <!-- FULL ADDRESS — NEVER TRUNCATE -->
                           <center><b><xsl:value-of select="notification_data/items/physical_item_display_for_printing/owning_library_details/address1" /></b></center>
@@ -1010,6 +1018,11 @@
                         <tr><td style="font-size:20px">ELECTRONIC</td></tr>
                       </xsl:if>
 
+                      <!-- BEGIN OPTIONAL CUSTOM MESSAGE -->
+                      <tr><td>@@CUSTOM_MESSAGE@@</td></tr>
+                      <xsl:call-template name="spacer" />
+                      <!-- END OPTIONAL CUSTOM MESSAGE -->
+
                       <xsl:call-template name="spacer" />
                       <xsl:call-template name="spacer" />
 
@@ -1165,6 +1178,11 @@
                         <tr><td style="font-size:20px">ELECTRONIC</td></tr>
                       </xsl:if>
 
+                      <!-- BEGIN OPTIONAL CUSTOM MESSAGE -->
+                      <tr><td>@@CUSTOM_MESSAGE@@</td></tr>
+                      <xsl:call-template name="spacer" />
+                      <!-- END OPTIONAL CUSTOM MESSAGE -->
+
                       <xsl:call-template name="spacer" />
                       <xsl:call-template name="spacer" />
 
@@ -1174,7 +1192,7 @@
 
 
                     <!-- ========================================================
-                         SECTION 11C - COPYRIGHT NOTICE
+                         SECTION 11D - COPYRIGHT NOTICE
                          ======================================================== -->
                     <xsl:call-template name="spacer" />
                     <tr>
@@ -1188,7 +1206,7 @@
                         </font>
                       </td>
                     </tr>
-                    <!-- ===== END SECTION 11C - COPYRIGHT NOTICE ===== -->
+                    <!-- ===== END SECTION 11D - COPYRIGHT NOTICE ===== -->
 
                   </xsl:if>
                   <!-- ===== END SECTION 11 - DIGITAL ===== -->

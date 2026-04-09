@@ -224,6 +224,20 @@
             </div>
           </fieldset>
 
+          <label class="field field-wide" data-letter-question="pull-slip-letter">
+            <span>Do you want to add a custom message?</span>
+            <select name="includeCustomMessage">
+              <option value="" selected>Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeCustomMessage" data-dependent-value="yes">
+            <span>Custom Message</span>
+            <textarea name="customMessageText" rows="4"></textarea>
+          </label>
+
           <div class="form-subsection field-wide" data-letter-question="pull-slip-letter">
             <h3>Slips for Requests for Physical Items</h3>
           </div>
@@ -258,6 +272,72 @@
               <option value="both-labels">Both Shipping and Return Labels</option>
               <option value="no-label">No Label</option>
             </select>
+          </label>
+
+          <div class="form-subsection field-wide" data-letter-question="pull-slip-letter">
+            <h3>Slips for Requests for Articles and Book Chapters</h3>
+          </div>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter">
+            <span>Do you want to add an Accessibility Statement to your Lending Scanning Slip?</span>
+            <select name="includeAccessibilityStatement">
+              <option value="" selected>Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeAccessibilityStatement" data-dependent-value="yes">
+            <span>Do you want to use default text or write your own?</span>
+            <select name="accessibilityStatementMode">
+              <option value="" selected>Select an option</option>
+              <option value="default">Default Text</option>
+              <option value="custom">Custom Text</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeAccessibilityStatement" data-dependent-value="yes" data-dependent-question-secondary="accessibilityStatementMode" data-dependent-value-secondary="default">
+            <span>Accessibility Contact</span>
+            <input type="text" name="accessibilityContact" value="" placeholder="Accessibility Contact">
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeAccessibilityStatement" data-dependent-value="yes" data-dependent-question-secondary="accessibilityStatementMode" data-dependent-value-secondary="default">
+            <span>Contact Phone</span>
+            <input type="text" name="accessibilityPhone" value="" placeholder="(999) 999-9999">
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeAccessibilityStatement" data-dependent-value="yes" data-dependent-question-secondary="accessibilityStatementMode" data-dependent-value-secondary="default">
+            <span>Contact Email</span>
+            <input type="text" name="accessibilityEmail" value="" placeholder="Email@youremail.edu">
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeAccessibilityStatement" data-dependent-value="yes" data-dependent-question-secondary="accessibilityStatementMode" data-dependent-value-secondary="default">
+            <span>Accessibility Statement Preview</span>
+            <button type="button" class="button primary" id="generate-accessibility-statement-button">Generate Statement</button>
+            <textarea name="accessibilityStatementPreview" rows="4" readonly></textarea>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeAccessibilityStatement" data-dependent-value="yes" data-dependent-question-secondary="accessibilityStatementMode" data-dependent-value-secondary="custom">
+            <span>Accessibility Statement</span>
+            <textarea name="accessibilityCustomStatementText" rows="4"></textarea>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter">
+            <span>Do you want to add a copyright statement?</span>
+            <select name="includeCopyrightStatement">
+              <option value="" selected>Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeCopyrightStatement" data-dependent-value="yes">
+            <span>Add the following copyright statement. The below box is pre-filled with default text which you can edit before submitting.</span>
+            <textarea name="copyrightStatementText" rows="8">The copyright law of the United States (Title 17, United States Code), governs the making of photocopies or other reproductions of copyrighted material.
+Under certain conditions specified in the law, libraries and archives are authorized to furnish a photocopy or other reproduction.
+One of these specified conditions is that the photocopy or reproduction is not to be "used for any purpose other than private study, scholarship, or research."
+If a user makes a request for, or later uses, a photocopy or reproduction for purposes in excess of "fair use," that user may be liable for copyright infringement.
+This institution reserves the right to refuse to accept a copying order, if, in its judgment, fulfillment of the order would involve violation of copyright law.</textarea>
           </label>
         </div>
 
