@@ -144,19 +144,6 @@
               </div>
             </div>
 
-            <div class="metadata-group">
-              <div class="metadata-group-header">
-                <h4>Chapter/Article Metadata</h4>
-                <button type="button" class="button primary metadata-select-all" data-metadata-group="chapter-article">Select All</button>
-              </div>
-              <div class="metadata-option-grid">
-                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="chapter-title"><span>Chapter Title</span></label>
-                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="chapter-author"><span>Chapter Author</span></label>
-                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="chapter-number"><span>Chapter Number</span></label>
-                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="journal-title"><span>Journal Title</span></label>
-                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="article-title"><span>Article Title</span></label>
-              </div>
-            </div>
           </fieldset>
 
           <div class="form-subsection field-wide" data-letter-question="pull-slip-letter">
@@ -224,7 +211,7 @@
             </div>
           </fieldset>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter">
+          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf">
             <span>Do you want to add a custom message?</span>
             <select name="includeCustomMessage">
               <option value="" selected>Select an option</option>
@@ -233,7 +220,7 @@
             </select>
           </label>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter" data-dependent-question="includeCustomMessage" data-dependent-value="yes">
+          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf" data-dependent-question="includeCustomMessage" data-dependent-value="yes">
             <span>Custom Message</span>
             <textarea name="customMessageText" rows="4"></textarea>
           </label>

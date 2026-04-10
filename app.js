@@ -1151,7 +1151,7 @@ function buildCustomMessageBlock(state) {
 function applyCustomMessageChoice(templateText, state) {
   const customMessagePattern = /[ \t]*<!-- BEGIN OPTIONAL CUSTOM MESSAGE -->[\s\S]*?<!-- END OPTIONAL CUSTOM MESSAGE -->[^\S\r\n]*/g;
 
-  if (state.letterType !== 'pull-slip-letter') {
+  if (!['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
     return templateText;
   }
 
@@ -1288,8 +1288,8 @@ function shouldUseSectionSplitLayout(state) {
   const metadataCount = (state.metadataOptions || []).filter((option) => PHYSICAL_SPLIT_ELIGIBLE_METADATA.has(option)).length;
   const hasCheckboxConditionReport = state.noteAreaType === 'checkboxes';
   return ['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)
-    && ((state.labelChoice !== '' && state.labelChoice !== 'no-label') || (state.letterType === 'pull-slip-letter' && state.includeCustomMessage === 'yes'))
-    && (state.labelChoice === 'both-labels' || metadataCount >= 8 || hasCheckboxConditionReport || (state.letterType === 'pull-slip-letter' && state.includeCustomMessage === 'yes'));
+    && ((state.labelChoice !== '' && state.labelChoice !== 'no-label') || state.includeCustomMessage === 'yes')
+    && (state.labelChoice === 'both-labels' || metadataCount >= 8 || hasCheckboxConditionReport || state.includeCustomMessage === 'yes');
 }
 
 function shouldUseDigitalSectionSplitLayout(state) {
@@ -1919,8 +1919,11 @@ function applyTemplateReplacements(templateText, state) {
     output = applyNoteAreaChoice(output, state);
   }
 
-  if (state.letterType === 'pull-slip-letter') {
+  if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
     output = applyCustomMessageChoice(output, state);
+  }
+
+  if (state.letterType === 'pull-slip-letter') {
     output = applyAccessibilityStatementChoice(output, state);
     output = applyCopyrightStatementChoice(output, state);
   }

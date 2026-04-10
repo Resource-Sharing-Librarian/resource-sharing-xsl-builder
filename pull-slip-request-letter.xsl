@@ -462,6 +462,12 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                                  </td>
                               </tr>
                            </xsl:if>
+                           <!-- BEGIN OPTIONAL CUSTOM MESSAGE -->
+                           <tr>
+                              <td>@@CUSTOM_MESSAGE@@</td>
+                           </tr>
+                           <xsl:call-template name="spacer" />
+                           <!-- END OPTIONAL CUSTOM MESSAGE -->
                            <!-- BEGIN OPTIONAL NOTE AREA -->
                            <tr>
                               <td>
