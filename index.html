@@ -17,6 +17,11 @@
   </script>
 </head>
 <body>
+  <nav class="skip-links" aria-label="Skip links">
+    <a href="#builder-form">Skip to questions</a>
+    <a href="#generated-xsl-panel">Skip to generated XSL</a>
+    <a href="#rendered-preview-panel">Skip to preview</a>
+  </nav>
   <main class="page">
     <section class="hero">
       <p class="eyebrow">ELUNA Rapido Working Group</p>
@@ -26,7 +31,7 @@
     <section class="layout">
       <form class="panel form-panel" id="builder-form">
         <div class="panel-heading">
-          <h2>Questions</h2>
+          <h2 id="questions-heading">Questions</h2>
           <p>Fill out this form to customize your XSL. After generating it, scroll down to copy the code and view an online preview of the letter in Alma.</p>
         </div>
 
@@ -329,46 +334,46 @@ This institution reserves the right to refuse to accept a copying order, if, in 
         </div>
 
         <div class="actions">
-          <button type="submit" class="button primary" id="submit-button">Submit</button>
-          <button type="reset" class="button secondary" id="reset-button">Reset</button>
+          <button type="submit" class="button primary" id="submit-button" aria-label="Generate customized XSL">Submit</button>
+          <button type="reset" class="button secondary" id="reset-button" aria-label="Reset the form">Reset</button>
         </div>
         <p class="scroll-note">↓ Scroll down to the next section. ↓</p>
       </form>
     </section>
 
-    <section class="panel preview-panel">
+    <section class="panel preview-panel" id="generated-xsl-panel" aria-labelledby="generated-xsl-heading">
       <div class="panel-heading">
-        <h2>Generated XSL</h2>
+        <h2 id="generated-xsl-heading">Generated XSL</h2>
         <p>Select all the below code, copy it, and paste it into the appropriate Letter in Alma.</p>
         <div class="preview-actions">
-          <button type="button" class="button primary copy-button" id="copy-xsl-button">
+          <button type="button" class="button primary copy-button" id="copy-xsl-button" aria-label="Copy generated XSL">
             <span class="copy-icon" aria-hidden="true"></span>
             <span class="copy-button-label">Copy</span>
           </button>
-          <button type="button" class="button primary download-button" id="download-xsl-button">
+          <button type="button" class="button primary download-button" id="download-xsl-button" aria-label="Download generated XSL">
             <span class="download-icon" aria-hidden="true"></span>
             <span>Download</span>
           </button>
         </div>
       </div>
-      <pre id="xsl-preview"></pre>
+      <pre id="xsl-preview" aria-label="Generated XSL output" tabindex="0"></pre>
       <p class="scroll-note">↓ Scroll down to the next section. ↓</p>
     </section>
 
-    <section class="panel rendered-panel">
+    <section class="panel rendered-panel" id="rendered-preview-panel" aria-labelledby="preview-heading">
       <div class="panel-heading">
-        <h2>Preview</h2>
+        <h2 id="preview-heading">Preview</h2>
         <p>This shows what the generated XSL produces when run against the selected sample XML.</p>
         <p>This Letter generates different slips based on if the request is for a physical item like a Book or a digital item like a Book Chapter or Article. Use the below options to switch the XML from Book, Book Chapter, and Article to see the various views.</p>
         <div class="preview-actions preview-sample-actions" role="group" aria-label="Preview sample type">
-          <button type="button" class="button primary preview-sample-button is-active" data-preview-sample="book">Book</button>
-          <button type="button" class="button primary preview-sample-button" data-preview-sample="book-chapter">Book Chapter</button>
-          <button type="button" class="button primary preview-sample-button" data-preview-sample="article">Article</button>
-          <button type="button" class="button primary preview-sample-button" data-preview-sample="resource-sharing" hidden>Resource Sharing</button>
-          <button type="button" class="button primary preview-sample-button" data-preview-sample="hold-shelf" hidden>Hold Shelf</button>
+          <button type="button" class="button primary preview-sample-button is-active" data-preview-sample="book" aria-label="Preview Book XML">Book</button>
+          <button type="button" class="button primary preview-sample-button" data-preview-sample="book-chapter" aria-label="Preview Book Chapter XML">Book Chapter</button>
+          <button type="button" class="button primary preview-sample-button" data-preview-sample="article" aria-label="Preview Article XML">Article</button>
+          <button type="button" class="button primary preview-sample-button" data-preview-sample="resource-sharing" aria-label="Preview Resource Sharing XML" hidden>Resource Sharing</button>
+          <button type="button" class="button primary preview-sample-button" data-preview-sample="hold-shelf" aria-label="Preview Hold Shelf XML" hidden>Hold Shelf</button>
         </div>
       </div>
-      <div id="rendered-preview"></div>
+      <div id="rendered-preview" role="region" aria-live="polite" aria-busy="false" aria-label="Rendered letter preview" tabindex="0"></div>
       <p class="scroll-note">↑ Scroll up to review or revise your responses. ↑</p>
     </section>
   </main>

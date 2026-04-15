@@ -29,6 +29,30 @@ body {
   margin: 0;
 }
 
+.skip-links {
+  left: 16px;
+  position: absolute;
+  top: 0;
+  z-index: 1100;
+}
+
+.skip-links a {
+  background: #ffffff;
+  border: 2px solid var(--brand);
+  border-radius: 12px;
+  color: var(--brand);
+  left: 0;
+  padding: 10px 14px;
+  position: absolute;
+  text-decoration: none;
+  top: -64px;
+  transition: top 160ms ease;
+}
+
+.skip-links a:focus {
+  top: 12px;
+}
+
 .page {
   margin: 0 auto;
   max-width: 1200px;
@@ -551,6 +575,26 @@ textarea {
 
 .toast.is-error {
   background: #a63636;
+}
+
+.field-error {
+  color: #a63636;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #a63636;
+  box-shadow: 0 0 0 3px rgba(166, 54, 54, 0.16);
+}
+
+#xsl-preview:focus,
+#rendered-preview:focus {
+  border-radius: 14px;
+  box-shadow: 0 0 0 3px rgba(0, 62, 126, 0.18);
+  outline: none;
 }
 
 @media (max-width: 900px) {

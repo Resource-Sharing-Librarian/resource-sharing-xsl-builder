@@ -13,6 +13,7 @@ const dependentQuestionGroups = Array.from(document.querySelectorAll('[data-depe
 const templateCache = {};
 const sampleXmlCache = {};
 let toastTimeoutId = null;
+let fieldErrorIdCounter = 0;
 let selectedPreviewSample = 'book';
 const PREVIEW_PAGE_WIDTH = 816;
 const PREVIEW_PAGE_HEIGHT = 1056;
@@ -772,6 +773,151 @@ function questionAppliesToLetter(element, selectedLetter) {
   return letters.includes(selectedLetter);
 }
 
+function ensureFieldErrorElement(field) {
+  const container = field.closest('.field');
+
+  if (!container) {
+    return null;
+  }
+
+  let errorElement = container.querySelector('.field-error');
+
+  if (errorElement) {
+    return errorElement;
+  }
+
+  errorElement = document.createElement('div');
+  errorElement.className = 'field-error';
+  errorElement.hidden = true;
+  errorElement.id = `${field.name || 'field'}-error-${fieldErrorIdCounter += 1}`;
+  container.appendChild(errorElement);
+  return errorElement;
+}
+
+function clearFieldError(field) {
+  if (!field) {
+    return;
+  }
+
+  const errorElement = field.closest('.field')?.querySelector('.field-error');
+  const describedBy = (field.getAttribute('aria-describedby') || '')
+    .split(/\s+/)
+    .filter(Boolean)
+    .filter((token) => token !== errorElement?.id);
+
+  field.removeAttribute('aria-invalid');
+
+  if (describedBy.length) {
+    field.setAttribute('aria-describedby', describedBy.join(' '));
+  } else {
+    field.removeAttribute('aria-describedby');
+  }
+
+  if (errorElement) {
+    errorElement.hidden = true;
+    errorElement.textContent = '';
+  }
+}
+
+function setFieldError(field, message) {
+  if (!field) {
+    return;
+  }
+
+  const errorElement = ensureFieldErrorElement(field);
+
+  if (!errorElement) {
+    return;
+  }
+
+  errorElement.textContent = message;
+  errorElement.hidden = false;
+  field.setAttribute('aria-invalid', 'true');
+
+  const describedBy = new Set((field.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean));
+  describedBy.add(errorElement.id);
+  field.setAttribute('aria-describedby', Array.from(describedBy).join(' '));
+}
+
+function clearAllFieldErrors() {
+  form.querySelectorAll('input, select, textarea').forEach((field) => {
+    clearFieldError(field);
+  });
+}
+
+function announceFieldError(field, message) {
+  setFieldError(field, message);
+  field.focus();
+  showToast(message, 'error');
+}
+
+function syncMetadataButtonAccessibility() {
+  metadataSelectAllButtons.forEach((button) => {
+    const groupTitle = button.closest('.metadata-group')?.querySelector('h4')?.textContent?.trim();
+    if (groupTitle) {
+      button.setAttribute('aria-label', `Select all ${groupTitle}`);
+    }
+  });
+}
+
+function focusFirstVisibleDependentField(controllingFieldName) {
+  const selectedLetter = form.elements.letterType.value;
+  const dependentGroup = dependentQuestionGroups.find((element) => (
+    element.dataset.dependentQuestion === controllingFieldName
+    && questionAppliesToLetter(element, selectedLetter)
+    && !element.hidden
+  ));
+
+  if (!dependentGroup) {
+    return;
+  }
+
+  const firstFocusable = dependentGroup.querySelector('input, select, textarea, button');
+
+  if (firstFocusable instanceof HTMLElement) {
+    firstFocusable.focus();
+  }
+}
+
+function syncQuestionsFromChange(controllingFieldName) {
+  syncLetterSpecificQuestions();
+  focusFirstVisibleDependentField(controllingFieldName);
+}
+
+function syncDependentQuestionAccessibility(selectedLetter) {
+  const controlMap = new Map();
+
+  dependentQuestionGroups.forEach((element, index) => {
+    if (!element.id) {
+      element.id = `dependent-question-${index + 1}`;
+    }
+
+    const controllingFieldName = element.dataset.dependentQuestion;
+    const controllingField = form.elements[controllingFieldName];
+
+    if (!controllingField || !questionAppliesToLetter(element, selectedLetter)) {
+      return;
+    }
+
+    if (!controlMap.has(controllingFieldName)) {
+      controlMap.set(controllingFieldName, []);
+    }
+
+    controlMap.get(controllingFieldName).push(element);
+  });
+
+  controlMap.forEach((elements, fieldName) => {
+    const controllingField = form.elements[fieldName];
+
+    if (!controllingField) {
+      return;
+    }
+
+    controllingField.setAttribute('aria-controls', elements.map((element) => element.id).join(' '));
+    controllingField.setAttribute('aria-expanded', elements.some((element) => !element.hidden) ? 'true' : 'false');
+  });
+}
+
 function syncLetterSpecificQuestions() {
   const selectedLetter = form.elements.letterType.value;
   const hasLetter = Boolean(selectedLetter);
@@ -805,6 +951,10 @@ function syncLetterSpecificQuestions() {
 
     element.hidden = !(shouldShow && shouldShowSecondary);
     element.style.display = shouldShow && shouldShowSecondary ? '' : 'none';
+
+    if (element.hidden) {
+      element.querySelectorAll('input, select, textarea').forEach((field) => clearFieldError(field));
+    }
   });
 
   if (logoUrlField && includeLogoField) {
@@ -851,6 +1001,8 @@ function syncLetterSpecificQuestions() {
 
     form.elements.accessibilityContact.required = requiresAccessibilityContact;
   }
+
+  syncDependentQuestionAccessibility(selectedLetter);
 }
 
 function removeSectionByPattern(templateText, pattern) {
@@ -2483,11 +2635,16 @@ function showToast(message, tone = 'success') {
     toast = document.createElement('div');
     toast.id = 'app-toast';
     toast.className = 'toast';
+    toast.setAttribute('role', 'status');
+    toast.setAttribute('aria-live', 'polite');
+    toast.setAttribute('aria-atomic', 'true');
     document.body.appendChild(toast);
   }
 
   toast.textContent = message;
   toast.classList.toggle('is-error', tone === 'error');
+  toast.setAttribute('role', tone === 'error' ? 'alert' : 'status');
+  toast.setAttribute('aria-live', tone === 'error' ? 'assertive' : 'polite');
   toast.classList.add('is-visible');
 
   window.clearTimeout(toastTimeoutId);
@@ -2595,30 +2752,36 @@ async function renderTransformedOutput(xslText, state) {
 
 async function render() {
   const state = readFormState();
+  clearAllFieldErrors();
 
   if (!state.letterType) {
     preview.textContent = '';
     renderedPreview.innerHTML = '';
+    renderedPreview.setAttribute('aria-busy', 'false');
     return;
   }
 
   if (!hasValidCustomHoldShelfXsl(state)) {
-    showToast('Custom Hold Shelf XSL is Invalid', 'error');
+    announceFieldError(form.elements.customHoldShelfLetterXsl, 'Custom Hold Shelf XSL is Invalid');
     return;
   }
 
   if (!hasValidAccessibilityContactInfo(state)) {
+    setFieldError(form.elements.accessibilityPhone, 'Phone or email is required');
+    setFieldError(form.elements.accessibilityEmail, 'Phone or email is required');
+    form.elements.accessibilityPhone?.focus();
     showToast('Phone or email is required', 'error');
     return;
   }
 
   if (!hasValidAccessibilityContactName(state)) {
-    showToast('Accessibility Contact is required', 'error');
+    announceFieldError(form.elements.accessibilityContact, 'Accessibility Contact is required');
     return;
   }
 
   preview.textContent = 'Loading template preview...';
   renderedPreview.textContent = 'Rendering sample output...';
+  renderedPreview.setAttribute('aria-busy', 'true');
 
   try {
     const xslText = await getTemplateText(state);
@@ -2630,6 +2793,7 @@ async function render() {
     preview.textContent = fallbackXsl;
     await renderTransformedOutput(fallbackXsl, state);
   }
+  renderedPreview.setAttribute('aria-busy', 'false');
   showToast('Successfully generated');
 }
 
@@ -2638,36 +2802,48 @@ form.addEventListener('submit', (event) => {
   render();
 });
 
+form.addEventListener('input', (event) => {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) {
+    clearFieldError(event.target);
+  }
+});
+
+form.addEventListener('change', (event) => {
+  if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) {
+    clearFieldError(event.target);
+  }
+});
+
 form.elements.letterType.addEventListener('change', () => {
   resetFormForLetterChange(form.elements.letterType.value);
 });
 
 form.elements.includeCreateDate.addEventListener('change', () => {
-  syncLetterSpecificQuestions();
+  syncQuestionsFromChange('includeCreateDate');
 });
 
 form.elements.hasCustomHoldShelfLetter.addEventListener('change', () => {
-  syncLetterSpecificQuestions();
+  syncQuestionsFromChange('hasCustomHoldShelfLetter');
 });
 
 form.elements.includeLogo.addEventListener('change', () => {
-  syncLetterSpecificQuestions();
+  syncQuestionsFromChange('includeLogo');
 });
 
 form.elements.includeCopyrightStatement.addEventListener('change', () => {
-  syncLetterSpecificQuestions();
+  syncQuestionsFromChange('includeCopyrightStatement');
 });
 
 form.elements.includeAccessibilityStatement.addEventListener('change', () => {
-  syncLetterSpecificQuestions();
+  syncQuestionsFromChange('includeAccessibilityStatement');
 });
 
 form.elements.includeCustomMessage?.addEventListener('change', () => {
-  syncLetterSpecificQuestions();
+  syncQuestionsFromChange('includeCustomMessage');
 });
 
 form.elements.accessibilityStatementMode?.addEventListener('change', () => {
-  syncLetterSpecificQuestions();
+  syncQuestionsFromChange('accessibilityStatementMode');
 });
 
 generateAccessibilityStatementButton?.addEventListener('click', () => {
@@ -2738,3 +2914,4 @@ resetButton.addEventListener('click', () => {
 syncLetterSpecificQuestions();
 syncSelectedPreviewSample();
 syncPreviewSampleButtons();
+syncMetadataButtonAccessibility();
