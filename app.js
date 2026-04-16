@@ -691,6 +691,7 @@ function readFormState() {
     noteAreaType: form.elements.noteAreaType.value,
     includeCustomMessage: getActiveFieldValue('includeCustomMessage', selectedLetter),
     customMessageText: form.elements.customMessageText?.value || '',
+    digitalBarcodesAtBottom: getActiveFieldValue('digitalBarcodesAtBottom', selectedLetter),
     includeAccessibilityStatement: getActiveFieldValue('includeAccessibilityStatement', selectedLetter),
     accessibilityStatementMode: getActiveFieldValue('accessibilityStatementMode', selectedLetter),
     accessibilityContact: form.elements.accessibilityContact?.value || '',
@@ -1899,6 +1900,19 @@ function splitDigitalInternalBarcode(innerBlock) {
   };
 }
 
+function splitDigitalBarcodeBlocks(innerBlock) {
+  const externalPattern = /^\s*(<xsl:if test="notification_data\/partner_name">\s*<tr><td><img src="cid:externalId\.png" alt="externalId" \/><\/td><\/tr>\s*<\/xsl:if>)\s*(?:<tr><td\s*\/><\/tr>|<xsl:call-template name="spacer" \/>)?\s*/;
+  const externalMatch = innerBlock.match(externalPattern);
+  const withoutExternal = externalMatch ? innerBlock.replace(externalPattern, '').trim() : innerBlock.trim();
+  const internalSplit = splitDigitalInternalBarcode(withoutExternal);
+
+  return {
+    leftContent: internalSplit.leftContent,
+    externalBarcodeBlock: externalMatch ? externalMatch[1].trim() : '',
+    internalBarcodeBlock: internalSplit.barcodeBlock
+  };
+}
+
 function normalizeDigitalBarcodeBlock(barcodeBlock, hasCustomMessage) {
   if (!barcodeBlock) {
     return '';
@@ -1909,6 +1923,90 @@ function normalizeDigitalBarcodeBlock(barcodeBlock, hasCustomMessage) {
   }
 
   return barcodeBlock.replace(/^(\s*<xsl:call-template name="spacer" \/>\s*)+/, '');
+}
+
+function buildBottomDigitalBarcodeBlock(externalBarcodeBlock, internalBarcodeBlock) {
+  const cleanedExternal = externalBarcodeBlock
+    ? [
+        '<xsl:if test="notification_data/partner_name">',
+        '  <tr><td style="font-weight:bold;">External ID</td></tr>',
+        '  <tr><td><img src="cid:externalId.png" alt="externalId" /></td></tr>',
+        '</xsl:if>'
+      ].join('\n')
+    : '';
+  const cleanedInternal = internalBarcodeBlock
+    ? [
+        '                          <tr><td style="font-weight:bold;">Internal ID</td></tr>',
+        normalizeDigitalBarcodeBlock(internalBarcodeBlock, true).replace(
+          /<tr><td><img src="cid:resource_sharing_request_id\.png" \/><\/td><\/tr>/,
+          '<tr><td><img src="cid:resource_sharing_request_id.png" /></td></tr>'
+        )
+      ].join('\n')
+    : '';
+
+  if (!cleanedExternal && !cleanedInternal) {
+    return '';
+  }
+
+  return [
+    '                          <tr><td style="height:180px;"></td></tr>',
+    cleanedExternal || '',
+    cleanedExternal && cleanedInternal ? '                          <tr><td style="height:12px;"></td></tr>' : '',
+    cleanedInternal || ''
+  ].filter(Boolean).join('\n');
+}
+
+function moveDigitalBarcodesToBottom(sectionInner) {
+  const { leftContent, externalBarcodeBlock, internalBarcodeBlock } = splitDigitalBarcodeBlocks(sectionInner);
+  const bottomBarcodeBlock = buildBottomDigitalBarcodeBlock(externalBarcodeBlock, internalBarcodeBlock);
+
+  if (!bottomBarcodeBlock) {
+    return sectionInner;
+  }
+
+  return `${leftContent}\n${bottomBarcodeBlock}`;
+}
+
+function applyDigitalBarcodePlacementChoice(templateText, state) {
+  if (state.letterType !== 'pull-slip-letter' || state.digitalBarcodesAtBottom !== 'yes' || shouldUseDigitalSectionSplitLayout(state)) {
+    return templateText;
+  }
+
+  const updateSection = (text, startMarker, endMarker, wrapperStripper, testExpression) => {
+    const extract = extractMarkedBlock(text, startMarker, endMarker);
+
+    if (!extract.block) {
+      return text;
+    }
+
+    const sectionInner = wrapperStripper(extract.block);
+    const rebuiltBlock = [
+      `                    <xsl:if test="${testExpression}">`,
+      moveDigitalBarcodesToBottom(sectionInner),
+      '                    </xsl:if>',
+      `                    ${endMarker}`
+    ].join('\n');
+
+    return text.replace(extract.block, rebuiltBlock);
+  };
+
+  let output = updateSection(
+    templateText,
+    'SECTION 11A - DIGITAL ARTICLE',
+    '<!-- ===== END SECTION 11A - DIGITAL ARTICLE ===== -->',
+    stripDigitalArticleWrapper,
+    "notification_data/metadata/material_type = 'Article'"
+  );
+
+  output = updateSection(
+    output,
+    'SECTION 11B - DIGITAL BOOK/CHAPTER',
+    '<!-- ===== END SECTION 11B - DIGITAL BOOK/CHAPTER ===== -->',
+    stripDigitalChapterWrapper,
+    "notification_data/metadata/material_type = 'Book'"
+  );
+
+  return output;
 }
 
 function applyDigitalSectionSplitLayout(templateText, state) {
@@ -1974,23 +2072,26 @@ function applyDigitalSectionSplitLayout(templateText, state) {
   const articleCustomMessageInner = articleCustomMessageExtract.block ? stripDigitalCustomMessageWrapper(articleCustomMessageExtract.block).trim() : '';
   const chapterCustomMessageInner = chapterCustomMessageExtract.block ? stripDigitalCustomMessageWrapper(chapterCustomMessageExtract.block).trim() : '';
 
-  const articleSplit = splitDigitalInternalBarcode(articleInner);
-  const chapterSplit = splitDigitalInternalBarcode(chapterInner);
+  const moveBarcodesToBottom = state.digitalBarcodesAtBottom === 'yes';
+  const articleSplit = moveBarcodesToBottom ? splitDigitalBarcodeBlocks(articleInner) : splitDigitalInternalBarcode(articleInner);
+  const chapterSplit = moveBarcodesToBottom ? splitDigitalBarcodeBlocks(chapterInner) : splitDigitalInternalBarcode(chapterInner);
 
-  const buildDigitalRightBlock = (customMessageBlock, barcodeBlock) => [
+  const buildDigitalRightBlock = (customMessageBlock, barcodeBlock, externalBarcodeBlock = '') => [
     '                      <div style="position:absolute; top:0; left:366px; width:336px !important; min-width:336px; max-width:336px; vertical-align:top; text-align:left;">',
     '                        <table role="presentation" cellspacing="0" cellpadding="2" border="0" style="width:336px; max-width:336px; table-layout:fixed;">',
     customMessageBlock || '',
-    normalizeDigitalBarcodeBlock(barcodeBlock, Boolean(customMessageBlock)),
     accessibilityInner ? '                          <tr><td style="height:12px;"></td></tr>' : '',
     accessibilityInner,
     copyrightInner ? '                          <tr><td style="height:12px;"></td></tr>' : '',
     copyrightInner,
+    moveBarcodesToBottom
+      ? buildBottomDigitalBarcodeBlock(externalBarcodeBlock, barcodeBlock)
+      : normalizeDigitalBarcodeBlock(barcodeBlock, Boolean(customMessageBlock)),
     '                        </table>',
     '                      </div>'
   ].filter(Boolean).join('\n');
 
-  const buildDigitalSplitBlock = (testExpression, leftContent, customMessageBlock, barcodeBlock) => [
+  const buildDigitalSplitBlock = (testExpression, leftContent, customMessageBlock, barcodeBlock, externalBarcodeBlock = '') => [
     `                    <xsl:if test="${testExpression}">`,
     '                      <div style="position:relative; width:702px !important; max-width:702px !important; margin:0;">',
     '                        <div style="width:336px !important; min-width:336px; max-width:336px; margin-right:366px; vertical-align:top; text-align:left;">',
@@ -1998,7 +2099,7 @@ function applyDigitalSectionSplitLayout(templateText, state) {
     leftContent,
     '                          </table>',
     '                        </div>',
-    buildDigitalRightBlock(customMessageBlock, barcodeBlock),
+    buildDigitalRightBlock(customMessageBlock, barcodeBlock, externalBarcodeBlock),
     '                      </div>',
     '                    </xsl:if>'
   ].join('\n');
@@ -2006,9 +2107,9 @@ function applyDigitalSectionSplitLayout(templateText, state) {
   const rebuiltDigitalBlock = [
     '                  <!-- ===== BEGIN SECTION 11 - DIGITAL ===== -->',
     `                  <xsl:if test="notification_data/incoming_request/format = 'DIGITAL'">`,
-    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Article'", articleSplit.leftContent, articleCustomMessageInner, articleSplit.barcodeBlock),
+    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Article'", articleSplit.leftContent, articleCustomMessageInner, moveBarcodesToBottom ? articleSplit.internalBarcodeBlock : articleSplit.barcodeBlock, moveBarcodesToBottom ? articleSplit.externalBarcodeBlock : ''),
     '',
-    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Book'", chapterSplit.leftContent, chapterCustomMessageInner, chapterSplit.barcodeBlock),
+    buildDigitalSplitBlock("notification_data/metadata/material_type = 'Book'", chapterSplit.leftContent, chapterCustomMessageInner, moveBarcodesToBottom ? chapterSplit.internalBarcodeBlock : chapterSplit.barcodeBlock, moveBarcodesToBottom ? chapterSplit.externalBarcodeBlock : ''),
     '                  </xsl:if>',
     '                  <!-- ===== END SECTION 11 - DIGITAL ===== -->'
   ].join('\n');
@@ -2209,6 +2310,7 @@ function applyTemplateReplacements(templateText, state) {
     }
 
   if (state.letterType === 'pull-slip-letter') {
+    output = applyDigitalBarcodePlacementChoice(output, state);
     output = applyAccessibilityStatementChoice(output, state);
     output = applyCopyrightStatementChoice(output, state);
   }
