@@ -47,11 +47,21 @@
               <option value="">Select a letter</option>
               <option value="pull-slip-letter">Pull Slip Letter (Ful Incoming Slip Letter)</option>
               <option value="pick-from-shelf">Pick from shelf (Alma P2P Pull Slip) (Ful Resource Request Letter)</option>
+              <option value="borrowing-receive-slip">Borrowing Receive Slip (Resource Sharing Receive Slip Letter)</option>
             </select>
           </label>
         </div>
 
         <div class="field-grid" id="letter-specific-questions" hidden>
+          <label class="field field-wide" data-letter-question="borrowing-receive-slip">
+            <span>Do you want the Letter formatted as a Slip/Book Band or Book Wrap?</span>
+            <select name="receiveSlipFormat" required>
+              <option value="" selected>Select an option</option>
+              <option value="slip-book-band">Slip/Book Band</option>
+              <option value="book-wrap">Book Wrap</option>
+            </select>
+          </label>
+
           <label class="field field-wide" data-letter-question="pick-from-shelf">
             <span>Has your Circulation Department customized their Hold Shelf Letter (Ful Resource Request Slip Letter)?</span>
             <select name="hasCustomHoldShelfLetter">
@@ -66,11 +76,11 @@
             <textarea name="customHoldShelfLetterXsl" rows="12" placeholder="Paste the full XSL here. The app will use only the first <html>...</html> block."></textarea>
           </label>
 
-          <div class="form-subsection field-wide" data-letter-question="pull-slip-letter pick-from-shelf">
+          <div class="form-subsection field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip">
             <h3>Slip Header</h3>
           </div>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf">
+          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip">
             <span>Do you want the request creation date added to your slip?</span>
             <select name="includeCreateDate">
               <option value="" selected>Select an option</option>
@@ -79,7 +89,7 @@
             </select>
           </label>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf" data-dependent-question="includeCreateDate" data-dependent-value="yes">
+          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip" data-dependent-question="includeCreateDate" data-dependent-value="yes">
             <span>What format do you want the date to appear?</span>
             <select name="createDateFormat">
               <option value="" selected>Select an option</option>
@@ -90,7 +100,7 @@
             </select>
           </label>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf">
+          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip">
             <span>Do you want to add your library logo to the Letter?</span>
             <select name="includeLogo">
               <option value="" selected>Select an option</option>
@@ -99,7 +109,7 @@
             </select>
           </label>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf" data-dependent-question="includeLogo" data-dependent-value="yes">
+          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip" data-dependent-question="includeLogo" data-dependent-value="yes">
             <span>What is the URL for the logo you want printed on the slip?</span>
             <small>The URL must link directly to a PNG or JPEG image.</small>
             <input
@@ -109,6 +119,43 @@
               value=""
               placeholder="https://example.org/library-logo.png">
           </label>
+
+          <label class="field field-wide" data-letter-question="borrowing-receive-slip">
+            <span>Do you want the Patron ID number on the slip?</span>
+            <select name="includePatronId">
+              <option value="" selected>Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <div class="form-subsection field-wide" data-letter-question="borrowing-receive-slip">
+            <h3>Metadata</h3>
+          </div>
+
+          <fieldset class="metadata-section field-wide" data-letter-question="borrowing-receive-slip">
+            <legend>Select the metadata you want on the slip.</legend>
+
+            <div class="metadata-group">
+              <div class="metadata-group-header">
+                <h4>Physical Item Metadata</h4>
+                <button type="button" class="button primary metadata-select-all" data-metadata-group="borrowing-receive-slip-physical">Select All</button>
+              </div>
+              <div class="metadata-option-grid">
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="title"><span>Title</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="author"><span>Author</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="volume"><span>Volume</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="issue"><span>Issue</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="isbn"><span>ISBN</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="oclc-number"><span>OCLC Number</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="place-of-publication"><span>Place of Publication</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="publication-date"><span>Publication Date</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="publisher"><span>Publisher</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="part"><span>Part</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="request-note"><span>Note</span></label>
+              </div>
+            </div>
+          </fieldset>
 
           <div class="form-subsection field-wide" data-letter-question="pick-from-shelf">
             <h3>Metadata</h3>
@@ -216,30 +263,30 @@
             </div>
           </fieldset>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf">
-            <span>Do you want to add a custom message?</span>
-            <select name="includeCustomMessage">
-              <option value="" selected>Select an option</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
-          </label>
+            <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip">
+              <span>Do you want to add a custom message?</span>
+              <select name="includeCustomMessage">
+                <option value="" selected>Select an option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </label>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf" data-dependent-question="includeCustomMessage" data-dependent-value="yes">
-            <span>Custom Message</span>
-            <textarea name="customMessageText" rows="4"></textarea>
-          </label>
+            <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip" data-dependent-question="includeCustomMessage" data-dependent-value="yes">
+              <span>Custom Message</span>
+              <textarea name="customMessageText" rows="4"></textarea>
+            </label>
 
           <div class="form-subsection field-wide" data-letter-question="pull-slip-letter">
             <h3>Slips for Requests for Physical Items</h3>
           </div>
 
-          <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf">
-            <span>Do you want an area on the printed letter to communicate issues or pre-existing damage to the Borrowing Library? What format?</span>
-            <select name="noteAreaType">
-              <option value="" selected>Select an option</option>
-              <option value="line">A line dedicated to writing a short note</option>
-              <option value="checkboxes">A series of check boxes explaining the issues</option>
+            <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip">
+              <span>Do you want an area on the printed letter to communicate issues or pre-existing damage to the Borrowing Library? What format?</span>
+              <select name="noteAreaType">
+                <option value="" selected>Select an option</option>
+                <option value="line">A line dedicated to writing a short note</option>
+                <option value="checkboxes">A series of check boxes explaining the issues</option>
               <option value="none">No note area</option>
             </select>
           </label>

@@ -18,16 +18,17 @@ let selectedPreviewSample = 'book';
 const PREVIEW_PAGE_WIDTH = 816;
 const PREVIEW_PAGE_HEIGHT = 1056;
 const PREVIEW_PAGE_MARGIN = 48;
-const PREVIEW_CONTENT_WIDTH = PREVIEW_PAGE_WIDTH - (PREVIEW_PAGE_MARGIN * 2);
-const PREVIEW_CONTENT_HEIGHT = PREVIEW_PAGE_HEIGHT - (PREVIEW_PAGE_MARGIN * 2);
+const LANDSCAPE_PREVIEW_PAGE_WIDTH = 1056;
+const LANDSCAPE_PREVIEW_PAGE_HEIGHT = 816;
+const LANDSCAPE_BOOK_WRAP_PREVIEW_PAGE_MARGIN = 24;
 const DEFAULT_ACCESSIBILITY_STATEMENT = `<<Library>> is committed to accessibility. If you have any problems accessing this material, please contact the <<Accessibility Contact>> at <<Contact Phone>> or <<Contact Email>>.`;
 const DEFAULT_COPYRIGHT_STATEMENT = `The copyright law of the United States (Title 17, United States Code), governs the making of photocopies or other reproductions of copyrighted material.
 Under certain conditions specified in the law, libraries and archives are authorized to furnish a photocopy or other reproduction.
 One of these specified conditions is that the photocopy or reproduction is not to be "used for any purpose other than private study, scholarship, or research."
 If a user makes a request for, or later uses, a photocopy or reproduction for purposes in excess of "fair use," that user may be liable for copyright infringement.
 This institution reserves the right to refuse to accept a copying order, if, in its judgment, fulfillment of the order would involve violation of copyright law.`;
-const PREVIEW_GROUP_QUALIFIER_BARCODE_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(`
-<svg xmlns="http://www.w3.org/2000/svg" width="224" height="104" viewBox="0 0 224 104">
+  const PREVIEW_GROUP_QUALIFIER_BARCODE_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(`
+  <svg xmlns="http://www.w3.org/2000/svg" width="224" height="104" viewBox="0 0 224 104">
   <rect width="224" height="104" fill="#fff"/>
   <g fill="#111">
     <rect x="12" y="10" width="2" height="66"/>
@@ -72,8 +73,12 @@ const PREVIEW_GROUP_QUALIFIER_BARCODE_SRC = `data:image/svg+xml;utf8,${encodeURI
     <rect x="206" y="10" width="2" height="66"/>
   </g>
   <text x="112" y="92" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#111">01MCU0000001</text>
-</svg>
-`)}`;
+  </svg>
+  `)}`;
+
+  Array.from(letterSpecificQuestions.querySelectorAll('input, select, textarea')).forEach((field) => {
+    field.dataset.defaultRequired = field.required ? 'true' : 'false';
+  });
 const PREVIEW_INTERNAL_ID_BARCODE_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(`
 <svg xmlns="http://www.w3.org/2000/svg" width="224" height="104" viewBox="0 0 224 104">
   <rect width="224" height="104" fill="#fff"/>
@@ -510,6 +515,10 @@ const previewSampleDefinitions = {
     label: 'Article',
     file: './sample-article.xml'
   },
+  'borrowing-receive-slip': {
+    label: 'Borrowing Receive Slip',
+    file: './sample-borrowing-receive-slip.xml'
+  },
   'hold-shelf': {
     label: 'Hold Shelf',
     file: './sample-hold-shelf.xml'
@@ -522,7 +531,8 @@ const previewSampleDefinitions = {
 
 const previewSamplesByLetter = {
   'pull-slip-letter': ['book', 'book-chapter', 'article'],
-  'pick-from-shelf': ['resource-sharing', 'hold-shelf']
+  'pick-from-shelf': ['resource-sharing', 'hold-shelf'],
+  'borrowing-receive-slip': ['borrowing-receive-slip']
 };
 
 const letterDefinitions = {
@@ -544,7 +554,8 @@ const letterDefinitions = {
     code: 'C',
     shortName: 'Borrowing Receive Slip',
     almaLetter: 'Resource Sharing Receive Slip Letter',
-    chunks: ['shell', 'letter-meta', 'library-header', 'request-fields', 'shipping-fields', 'staff-contact', 'closing']
+    chunks: ['shell', 'real-template-file'],
+    templateFile: './borrowing-receive-slip.xsl'
   },
   'return-label': {
     code: 'D',
@@ -670,9 +681,11 @@ function readFormState() {
     letterType: selectedLetter,
     hasCustomHoldShelfLetter: form.elements.hasCustomHoldShelfLetter?.value || '',
     customHoldShelfLetterXsl: form.elements.customHoldShelfLetterXsl?.value || '',
-    includeLogo: form.elements.includeLogo.value,
-    logoUrl: form.elements.logoUrl.value.trim(),
-    labelChoice: getActiveFieldValue('labelChoice', selectedLetter),
+      includeLogo: form.elements.includeLogo.value,
+      logoUrl: form.elements.logoUrl.value.trim(),
+      includePatronId: getActiveFieldValue('includePatronId', selectedLetter),
+      receiveSlipFormat: getActiveFieldValue('receiveSlipFormat', selectedLetter),
+      labelChoice: getActiveFieldValue('labelChoice', selectedLetter),
     includeCreateDate: form.elements.includeCreateDate.value,
     createDateFormat: form.elements.createDateFormat.value,
     noteAreaType: form.elements.noteAreaType.value,
@@ -918,9 +931,9 @@ function syncDependentQuestionAccessibility(selectedLetter) {
   });
 }
 
-function syncLetterSpecificQuestions() {
-  const selectedLetter = form.elements.letterType.value;
-  const hasLetter = Boolean(selectedLetter);
+  function syncLetterSpecificQuestions() {
+    const selectedLetter = form.elements.letterType.value;
+    const hasLetter = Boolean(selectedLetter);
   const logoUrlField = form.elements.logoUrl;
   const includeLogoField = form.elements.includeLogo;
   const customHoldShelfLetterField = form.elements.customHoldShelfLetterXsl;
@@ -935,7 +948,7 @@ function syncLetterSpecificQuestions() {
     element.style.display = isMatch ? '' : 'none';
   });
 
-  dependentQuestionGroups.forEach((element) => {
+    dependentQuestionGroups.forEach((element) => {
     const controllingField = form.elements[element.dataset.dependentQuestion];
     const expectedValue = element.dataset.dependentValue;
     const secondaryControllingField = element.dataset.dependentQuestionSecondary
@@ -952,17 +965,28 @@ function syncLetterSpecificQuestions() {
     element.hidden = !(shouldShow && shouldShowSecondary);
     element.style.display = shouldShow && shouldShowSecondary ? '' : 'none';
 
-    if (element.hidden) {
-      element.querySelectorAll('input, select, textarea').forEach((field) => clearFieldError(field));
-    }
-  });
+      if (element.hidden) {
+        element.querySelectorAll('input, select, textarea').forEach((field) => clearFieldError(field));
+      }
+    });
 
-  if (logoUrlField && includeLogoField) {
-    const requiresLogoUrl = hasLetter
-      && ['pull-slip-letter', 'pick-from-shelf'].includes(selectedLetter)
-      && includeLogoField.value === 'yes';
+    letterSpecificQuestions.querySelectorAll('input, select, textarea').forEach((field) => {
+      const owningQuestion = field.closest('[data-dependent-question], [data-letter-question]');
+      const defaultRequired = field.dataset.defaultRequired === 'true';
+      const isVisible = hasLetter
+        && owningQuestion
+        && !owningQuestion.hidden
+        && owningQuestion.style.display !== 'none';
 
-    logoUrlField.required = requiresLogoUrl;
+      field.required = defaultRequired && isVisible;
+    });
+
+    if (logoUrlField && includeLogoField) {
+      const requiresLogoUrl = hasLetter
+        && ['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(selectedLetter)
+        && includeLogoField.value === 'yes';
+
+      logoUrlField.required = requiresLogoUrl;
 
     if (!requiresLogoUrl) {
       logoUrlField.value = '';
@@ -1101,9 +1125,23 @@ function applyCreateDateChoice(templateText, state) {
   return templateText;
 }
 
-function applyCreateDateFormat(templateText, state) {
-  return templateText.replaceAll('@@CREATE_DATE_FORMAT@@', state.createDateFormat || 'numerical');
-}
+  function applyCreateDateFormat(templateText, state) {
+    return templateText.replaceAll('@@CREATE_DATE_FORMAT@@', state.createDateFormat || 'numerical');
+  }
+
+  function applyBorrowingReceivePatronIdChoice(templateText, state) {
+    const patronIdPattern = /[ \t]*<!-- BEGIN OPTIONAL PATRON ID -->[\s\S]*?<!-- END OPTIONAL PATRON ID -->[^\S\r\n]*/;
+
+    if (state.letterType !== 'borrowing-receive-slip') {
+      return templateText;
+    }
+
+    if (state.includePatronId === 'no') {
+      return removeSectionByPattern(templateText, patronIdPattern);
+    }
+
+    return templateText;
+  }
 
 function formatAccessibilityPhoneNumber(phone) {
   const digits = (phone || '').replace(/\D/g, '');
@@ -1278,22 +1316,23 @@ function applyCopyrightStatementChoice(templateText, state) {
   return templateText;
 }
 
-function buildCustomMessageBlock(state) {
-  const lines = (state.customMessageText || '')
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
+  function buildCustomMessageBlock(state) {
+    const lines = (state.customMessageText || '')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
 
   const content = lines
     .map((line, index) => `${index > 0 ? '                        <br />\n' : ''}                        ${escapeXml(line)}`)
     .join('');
 
-  return [
-    '                    <!-- BEGIN OPTIONAL CUSTOM MESSAGE -->',
-    '                    <tr>',
-    '                      <td style="width:350px;">',
-    content,
-    '                      </td>',
+    return [
+      '                    <!-- BEGIN OPTIONAL CUSTOM MESSAGE -->',
+      ...(state.letterType === 'borrowing-receive-slip' ? ['                    <xsl:call-template name="spacer" />'] : []),
+      '                    <tr>',
+      '                      <td style="width:350px;">',
+      content,
+      '                      </td>',
     '                    </tr>',
     '                    <xsl:call-template name="spacer" />',
     '                    <!-- END OPTIONAL CUSTOM MESSAGE -->'
@@ -1303,9 +1342,9 @@ function buildCustomMessageBlock(state) {
 function applyCustomMessageChoice(templateText, state) {
   const customMessagePattern = /[ \t]*<!-- BEGIN OPTIONAL CUSTOM MESSAGE -->[\s\S]*?<!-- END OPTIONAL CUSTOM MESSAGE -->[^\S\r\n]*/g;
 
-  if (!['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
-    return templateText;
-  }
+    if (!['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
+      return templateText;
+    }
 
   if (state.includeCustomMessage !== 'yes') {
     return removeSectionByPattern(templateText, customMessagePattern);
@@ -1359,11 +1398,12 @@ function applyMetadataSelection(templateText, state) {
     'volume',
     'issue',
     'pages',
-    'publisher',
-    'place-of-publication',
-    'oclc-number',
-    'borrower-reference',
-    'request-note',
+      'publisher',
+      'place-of-publication',
+      'oclc-number',
+      'part',
+      'borrower-reference',
+      'request-note',
     'requester-email',
     'edition',
     'isbn',
@@ -1436,6 +1476,20 @@ const DIGITAL_SPLIT_ELIGIBLE_METADATA = new Set([
   'chapter-author'
 ]);
 
+const BORROWING_RECEIVE_SPLIT_ELIGIBLE_METADATA = new Set([
+  'title',
+  'author',
+  'volume',
+  'issue',
+  'isbn',
+  'oclc-number',
+  'place-of-publication',
+  'publication-date',
+  'publisher',
+  'part',
+  'request-note'
+]);
+
 function shouldUseSectionSplitLayout(state) {
   const metadataCount = (state.metadataOptions || []).filter((option) => PHYSICAL_SPLIT_ELIGIBLE_METADATA.has(option)).length;
   const hasCheckboxConditionReport = state.noteAreaType === 'checkboxes';
@@ -1448,6 +1502,13 @@ function shouldUseDigitalSectionSplitLayout(state) {
   const metadataCount = (state.metadataOptions || []).filter((option) => DIGITAL_SPLIT_ELIGIBLE_METADATA.has(option)).length;
 
   return state.letterType === 'pull-slip-letter' && (metadataCount > 5 || state.includeCustomMessage === 'yes');
+}
+
+function shouldUseBorrowingReceiveSplitLayout(state) {
+  const metadataCount = (state.metadataOptions || []).filter((option) => BORROWING_RECEIVE_SPLIT_ELIGIBLE_METADATA.has(option)).length;
+  return state.letterType === 'borrowing-receive-slip'
+    && state.receiveSlipFormat !== 'book-wrap'
+    && metadataCount > 5;
 }
 
 function extractSelectedPhysicalLabelBlock(templateText) {
@@ -1540,6 +1601,74 @@ function buildSplitSideNoteBlock(state) {
     '                          </div>',
     '                          <div style="height:12px;"></div>'
   ].join('\n');
+}
+
+function normalizeBorrowingReceiveSplitNoteBlock(noteBlock) {
+  return (noteBlock || '')
+    .replaceAll('350px', '336px')
+    .replaceAll('width:336px; border-bottom:1px solid #000; height:14px;', 'width:336px; border-bottom:1px solid #000; height:14px;')
+    .trim();
+}
+
+function normalizeBorrowingReceiveSplitLeftBlock(contentBlock) {
+  return (contentBlock || '')
+    .replaceAll('width:375px;', 'width:336px;')
+    .replaceAll('max-width:375px;', 'max-width:336px;')
+    .trim();
+}
+
+function applyBorrowingReceiveSplitLayout(templateText, state) {
+  if (!shouldUseBorrowingReceiveSplitLayout(state)) {
+    return templateText;
+  }
+
+  const sideNoteBlock = normalizeBorrowingReceiveSplitNoteBlock(buildSplitSideNoteBlock(state));
+  const { templateWithoutNote } = extractOptionalNoteAreaBlock(templateText);
+  let output = templateWithoutNote;
+
+  output = output.replace(
+    'body style="width: 375px !important; max-width: 375px !important; margin: 0; overflow-wrap: break-word !important;"',
+    'body style="width: 702px !important; max-width: 702px !important; margin: 0; overflow-wrap: break-word !important;"'
+  );
+
+  output = output.replace(
+    'table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:375px; max-width:375px; border-collapse:collapse;"',
+    'table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:702px; max-width:702px; border-collapse:collapse;"'
+  );
+
+  if (!sideNoteBlock) {
+    return output;
+  }
+
+  const splitStartPattern = /(<tr>\s*<td style="width:375px;">\s*<h1 style="margin:0 0 12px 0;">[\s\S]*?<xsl:if test="not\(notification_data\/pickup_library_name=''\)">[\s\S]*?<\/xsl:if>)/;
+  const splitMatch = output.match(splitStartPattern);
+
+  if (!splitMatch) {
+    return output;
+  }
+
+  const leftColumnContent = normalizeBorrowingReceiveSplitLeftBlock(splitMatch[1]);
+  const splitRowBlock = [
+    '                      <tr>',
+    '                         <td style="width:702px;">',
+    '                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:702px; max-width:702px; border-collapse:collapse;">',
+    '                               <tr>',
+    '                                  <td style="width:336px; vertical-align:top;">',
+    '                                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="width:336px; max-width:336px; border-collapse:collapse;">',
+    leftColumnContent,
+    '                                     </table>',
+    '                                  </td>',
+    '                                  <td style="width:30px;">&#160;</td>',
+    '                                  <td style="width:336px; vertical-align:top; text-align:left;">',
+    sideNoteBlock,
+    '                                  </td>',
+    '                               </tr>',
+    '                            </table>',
+    '                         </td>',
+    '                      </tr>'
+  ].join('\n');
+
+  return output.replace(splitStartPattern, splitRowBlock);
 }
 
 function normalizeMovedLabelBlock(labelBlock) {
@@ -2043,13 +2172,17 @@ function applyTemplateReplacements(templateText, state) {
   const logoUrl = state.includeLogo === 'yes' ? state.logoUrl : '';
   let output = templateText.replaceAll('@@LOGO_URL@@', logoUrl || '');
 
-  if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
-    output = applyCreateDateChoice(output, state);
-    output = applyCreateDateFormat(output, state);
-  }
+    if (['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
+      output = applyCreateDateChoice(output, state);
+      output = applyCreateDateFormat(output, state);
+    }
 
-  if (state.letterType === 'pick-from-shelf') {
-    let localCircHtml = '';
+    if (state.letterType === 'borrowing-receive-slip') {
+      output = applyBorrowingReceivePatronIdChoice(output, state);
+    }
+
+    if (state.letterType === 'pick-from-shelf') {
+      let localCircHtml = '';
 
     if (state.hasCustomHoldShelfLetter === 'no') {
       localCircHtml = DEFAULT_PICK_FROM_SHELF_HOLD_SHELF_HTML;
@@ -2063,17 +2196,17 @@ function applyTemplateReplacements(templateText, state) {
     );
   }
 
-  if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
-    output = applyMetadataSelection(output, state);
-  }
+    if (['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
+      output = applyMetadataSelection(output, state);
+    }
 
-  if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
-    output = applyNoteAreaChoice(output, state);
-  }
+    if (['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
+      output = applyNoteAreaChoice(output, state);
+    }
 
-  if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
-    output = applyCustomMessageChoice(output, state);
-  }
+    if (['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
+      output = applyCustomMessageChoice(output, state);
+    }
 
   if (state.letterType === 'pull-slip-letter') {
     output = applyAccessibilityStatementChoice(output, state);
@@ -2084,13 +2217,17 @@ function applyTemplateReplacements(templateText, state) {
     output = applySelectedLabelChoice(output, state);
   }
 
-  if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
-    output = applySectionSplitLayout(output, state);
-  }
+    if (['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)) {
+      output = applySectionSplitLayout(output, state);
+    }
 
-  if (state.letterType === 'pull-slip-letter') {
-    output = applyDigitalSectionSplitLayout(output, state);
-  }
+    if (state.letterType === 'borrowing-receive-slip') {
+      output = applyBorrowingReceiveSplitLayout(output, state);
+    }
+
+    if (state.letterType === 'pull-slip-letter') {
+      output = applyDigitalSectionSplitLayout(output, state);
+    }
 
   output = applyLayoutClass(output, state);
 
@@ -2253,22 +2390,25 @@ function assembleScaffoldXsl(state) {
 
 async function getTemplateText(state) {
   const definition = getLetterDefinition(state.letterType);
+  const templateFile = state.letterType === 'borrowing-receive-slip' && state.receiveSlipFormat === 'book-wrap'
+    ? './borrowing-receive-book-wrap.xsl'
+    : definition.templateFile;
 
-  if (!definition.templateFile) {
+  if (!templateFile) {
     return applyTemplateReplacements(assembleScaffoldXsl(state), state);
   }
 
-  if (!templateCache[definition.templateFile]) {
-    const response = await fetch(definition.templateFile, { cache: 'no-store' });
+  if (!templateCache[templateFile]) {
+    const response = await fetch(templateFile, { cache: 'no-store' });
 
     if (!response.ok) {
-      throw new Error(`Failed to load template: ${definition.templateFile}`);
+      throw new Error(`Failed to load template: ${templateFile}`);
     }
 
-    templateCache[definition.templateFile] = await response.text();
+    templateCache[templateFile] = await response.text();
   }
 
-  return applyTemplateReplacements(templateCache[definition.templateFile], state);
+  return applyTemplateReplacements(templateCache[templateFile], state);
 }
 
 function syncPreviewSampleButtons() {
@@ -2556,11 +2696,13 @@ function replacePreviewBarcodeImages(root) {
     const altText = (image.getAttribute('alt') || '').trim();
     const src = image.getAttribute('src') || '';
     const isInternalIdBarcode = src.includes('resource_sharing_request_id');
+    const isBorrowingReceiveBarcode = src.includes('Barcode.png') || altText === 'Barcode';
     const isPreviewBarcode = altText === 'group_qualifier'
       || altText === 'externalId'
       || src.includes('group_qualifier')
       || src.includes('externalId')
-      || src.includes('resource_sharing_request_id');
+      || src.includes('resource_sharing_request_id')
+      || isBorrowingReceiveBarcode;
 
     if (!isPreviewBarcode) {
       return;
@@ -2577,9 +2719,26 @@ function replacePreviewBarcodeImages(root) {
   });
 }
 
-function buildPaginatedPreview(container) {
+function getPreviewPageMetrics(state) {
+  const isLandscapeBookWrap = state.letterType === 'borrowing-receive-slip' && state.receiveSlipFormat === 'book-wrap';
+  const pageWidth = isLandscapeBookWrap ? LANDSCAPE_PREVIEW_PAGE_WIDTH : PREVIEW_PAGE_WIDTH;
+  const pageHeight = isLandscapeBookWrap ? LANDSCAPE_PREVIEW_PAGE_HEIGHT : PREVIEW_PAGE_HEIGHT;
+  const pageMargin = isLandscapeBookWrap ? LANDSCAPE_BOOK_WRAP_PREVIEW_PAGE_MARGIN : PREVIEW_PAGE_MARGIN;
+
+  return {
+    isLandscapeBookWrap,
+    pageWidth,
+    pageHeight,
+    pageMargin,
+    contentWidth: pageWidth - (pageMargin * 2),
+    contentHeight: pageHeight - (pageMargin * 2)
+  };
+}
+
+function buildPaginatedPreview(container, state) {
   const sourceMarkup = container.innerHTML.trim();
   const hasSectionSplitLayout = container.classList.contains('section-split-layout');
+  const metrics = getPreviewPageMetrics(state);
 
   if (!sourceMarkup) {
     return;
@@ -2589,18 +2748,21 @@ function buildPaginatedPreview(container) {
   measureHost.className = 'preview-measure-host';
   const measurePage = document.createElement('div');
   measurePage.className = 'preview-measure-page';
+  measurePage.style.width = `${metrics.pageWidth}px`;
+  measurePage.style.height = `${metrics.pageHeight}px`;
   const measureContent = document.createElement('div');
   measureContent.className = 'preview-measure-content';
-  measureContent.style.width = `${PREVIEW_CONTENT_WIDTH}px`;
+  measureContent.style.width = `${metrics.contentWidth}px`;
+  measureContent.style.margin = metrics.isLandscapeBookWrap ? `${metrics.pageMargin}px` : '';
   measureContent.innerHTML = sourceMarkup;
   measurePage.appendChild(measureContent);
   measureHost.appendChild(measurePage);
   document.body.appendChild(measureHost);
 
   const availableWidth = Math.max(320, renderedPreview.clientWidth - 24);
-  const scale = Math.min(1, availableWidth / PREVIEW_PAGE_WIDTH);
-  const totalHeight = Math.max(measureContent.scrollHeight, PREVIEW_CONTENT_HEIGHT);
-  const pageCount = Math.max(1, Math.ceil(totalHeight / PREVIEW_CONTENT_HEIGHT));
+  const scale = Math.min(1, availableWidth / metrics.pageWidth);
+  const totalHeight = Math.max(measureContent.scrollHeight, metrics.contentHeight);
+  const pageCount = Math.max(1, Math.ceil(totalHeight / metrics.contentHeight));
 
   document.body.removeChild(measureHost);
 
@@ -2610,8 +2772,8 @@ function buildPaginatedPreview(container) {
   for (let pageIndex = 0; pageIndex < pageCount; pageIndex += 1) {
     const page = document.createElement('div');
     page.className = 'preview-paper';
-    page.style.width = `${PREVIEW_PAGE_WIDTH * scale}px`;
-    page.style.height = `${PREVIEW_PAGE_HEIGHT * scale}px`;
+    page.style.width = `${metrics.pageWidth * scale}px`;
+    page.style.height = `${metrics.pageHeight * scale}px`;
 
     const viewport = document.createElement('div');
     viewport.className = 'preview-paper-viewport';
@@ -2619,8 +2781,9 @@ function buildPaginatedPreview(container) {
     const content = document.createElement('div');
     content.className = 'preview-paper-content';
     content.classList.toggle('section-split-layout', hasSectionSplitLayout);
-    content.style.width = `${PREVIEW_CONTENT_WIDTH}px`;
-    content.style.transform = `translateY(-${pageIndex * PREVIEW_CONTENT_HEIGHT}px) scale(${scale})`;
+    content.style.width = `${metrics.contentWidth}px`;
+    content.style.margin = metrics.isLandscapeBookWrap ? `${metrics.pageMargin}px` : '';
+    content.style.transform = `translateY(-${pageIndex * metrics.contentHeight}px) scale(${scale})`;
     content.innerHTML = sourceMarkup;
     viewport.appendChild(content);
     page.appendChild(viewport);
@@ -2693,7 +2856,7 @@ function downloadPreviewAsText() {
 
 async function renderTransformedOutput(xslText, state) {
   renderedPreview.innerHTML = '';
-  renderedPreview.classList.toggle('section-split-layout', shouldUseSectionSplitLayout(state));
+  renderedPreview.classList.toggle('section-split-layout', shouldUseSectionSplitLayout(state) || shouldUseBorrowingReceiveSplitLayout(state));
 
   if (!window.XSLTProcessor) {
     renderedPreview.textContent = 'This browser does not support in-page XSLT preview.';
@@ -2730,7 +2893,7 @@ async function renderTransformedOutput(xslText, state) {
 
     cleanPreviewPlaceholderLabels(renderedPreview);
     replacePreviewBarcodeImages(renderedPreview);
-    buildPaginatedPreview(renderedPreview);
+    buildPaginatedPreview(renderedPreview, state);
   } catch (error) {
     console.error(error);
     if (state.letterType === 'pick-from-shelf') {
@@ -2741,7 +2904,7 @@ async function renderTransformedOutput(xslText, state) {
         renderedPreview.innerHTML = fallbackMarkup;
         cleanPreviewPlaceholderLabels(renderedPreview);
         replacePreviewBarcodeImages(renderedPreview);
-        buildPaginatedPreview(renderedPreview);
+        buildPaginatedPreview(renderedPreview, state);
         return;
       }
     }
