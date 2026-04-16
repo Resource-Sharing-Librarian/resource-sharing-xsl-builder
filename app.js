@@ -2492,12 +2492,15 @@ function applyCurrentDateToPreviewXml(xmlText) {
   const pad = (value) => String(value).padStart(2, '0');
   const today = `${pad(now.getMonth() + 1)}/${pad(now.getDate())}/${now.getFullYear()}`;
 
-  [
-    'notification_data > borrowing_library_address > create_date',
-    'notification_data > general_data > current_date',
-    'notification_data > incoming_request > create_date',
-    'notification_data > incoming_request > create_date_str',
-    'notification_data > incoming_request > modification_date_str',
+    [
+      'notification_data > borrowing_library_address > create_date',
+      'notification_data > general_data > current_date',
+      'notification_data > request > create_date',
+      'notification_data > request > create_date_str',
+      'notification_data > request > item_arrival_date',
+      'notification_data > incoming_request > create_date',
+      'notification_data > incoming_request > create_date_str',
+      'notification_data > incoming_request > modification_date_str',
     'notification_data > incoming_request > print_slip_date',
     'notification_data > incoming_request > print_slip_date_dummy'
   ].forEach((selector) => {
