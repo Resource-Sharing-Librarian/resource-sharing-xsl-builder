@@ -1462,7 +1462,8 @@ function applyMetadataSelection(templateText, state) {
 }
 
 function applyLayoutClass(templateText, state) {
-  return templateText.replaceAll('@@LAYOUT_CLASS@@', shouldUseSectionSplitLayout(state) ? 'section-split-layout' : '');
+  const usesSplitLayout = shouldUseSectionSplitLayout(state) || shouldUseDigitalSectionSplitLayout(state);
+  return templateText.replaceAll('@@LAYOUT_CLASS@@', usesSplitLayout ? 'section-split-layout' : '');
 }
 
 const PHYSICAL_SPLIT_ELIGIBLE_METADATA = new Set([
@@ -1520,14 +1521,15 @@ const BORROWING_RECEIVE_SPLIT_ELIGIBLE_METADATA = new Set([
 function shouldUseSectionSplitLayout(state) {
   const metadataCount = (state.metadataOptions || []).filter((option) => PHYSICAL_SPLIT_ELIGIBLE_METADATA.has(option)).length;
   const hasCheckboxConditionReport = state.noteAreaType === 'checkboxes';
+  const hasBothLabels = state.labelChoice === 'both-labels';
   const labelsTriggerSplit = !(
     state.letterType === 'pull-slip-letter'
     && state.libraryGroup === 'california-state-university'
   );
 
   return ['pull-slip-letter', 'pick-from-shelf'].includes(state.letterType)
-    && (((state.labelChoice !== '' && state.labelChoice !== 'no-label') && labelsTriggerSplit) || state.includeCustomMessage === 'yes')
-    && (state.labelChoice === 'both-labels' || metadataCount >= 8 || hasCheckboxConditionReport || state.includeCustomMessage === 'yes');
+    && (hasBothLabels || (((state.labelChoice !== '' && state.labelChoice !== 'no-label') && labelsTriggerSplit) || state.includeCustomMessage === 'yes'))
+    && (hasBothLabels || metadataCount >= 8 || hasCheckboxConditionReport || state.includeCustomMessage === 'yes');
 }
 
 function shouldUseDigitalSectionSplitLayout(state) {
@@ -1875,6 +1877,7 @@ function applyPullSlipDigitalSectionCustomizations(templateText, state) {
     output = applyDigitalBarcodePlacementChoice(output, state);
     output = applyAccessibilityStatementChoice(output, state);
     output = applyCopyrightStatementChoice(output, state);
+    output = moveDigitalStatementsBelowMetadata(output, state);
     return output;
   });
 }
@@ -2213,6 +2216,82 @@ function stripDigitalCustomMessageWrapper(customMessageBlock) {
   return customMessageBlock
     .replace(/^\s*<!-- BEGIN OPTIONAL CUSTOM MESSAGE -->\s*/, '')
     .replace(/\s*<!-- END OPTIONAL CUSTOM MESSAGE -->\s*$/, '');
+}
+
+function moveDigitalStatementsBelowMetadata(templateText, state) {
+  if (state.letterType !== 'pull-slip-letter' || shouldUseDigitalSectionSplitLayout(state)) {
+    return templateText;
+  }
+
+  const accessibilityExtract = extractMarkedBlock(
+    templateText,
+    'SECTION 11C - ACCESSIBILITY NOTICE',
+    '<!-- ===== END SECTION 11C - ACCESSIBILITY NOTICE ===== -->'
+  );
+  const copyrightExtract = extractMarkedBlock(
+    accessibilityExtract.textWithoutBlock,
+    'SECTION 11D - COPYRIGHT NOTICE',
+    '<!-- ===== END SECTION 11D - COPYRIGHT NOTICE ===== -->'
+  );
+
+  const statementsBlock = [
+    accessibilityExtract.block ? stripDigitalAccessibilityWrapper(accessibilityExtract.block).trim() : '',
+    copyrightExtract.block ? stripDigitalCopyrightWrapper(copyrightExtract.block).trim() : ''
+  ].filter(Boolean).join('\n');
+
+  if (!statementsBlock) {
+    return copyrightExtract.textWithoutBlock;
+  }
+
+  const insertIntoSection = (text, startMarker, endMarker, wrapperStripper, testExpression) => {
+    const extract = extractMarkedBlock(text, startMarker, endMarker);
+
+    if (!extract.block) {
+      return text;
+    }
+
+    let sectionInner = wrapperStripper(extract.block);
+    const customMessagePattern = /(\s*<!-- BEGIN OPTIONAL CUSTOM MESSAGE -->[\s\S]*?<!-- END OPTIONAL CUSTOM MESSAGE -->)/;
+
+    if (customMessagePattern.test(sectionInner)) {
+      sectionInner = sectionInner.replace(customMessagePattern, `\n${statementsBlock}\n$1`);
+    } else {
+      const barcodeTailPattern = /(\s*<xsl:call-template name="spacer" \/>\s*<xsl:call-template name="spacer" \/>\s*<tr><td><img src="cid:resource_sharing_request_id\.png" \/><\/td><\/tr>\s*)$/;
+
+      if (barcodeTailPattern.test(sectionInner)) {
+        sectionInner = sectionInner.replace(barcodeTailPattern, `\n${statementsBlock}\n$1`);
+      } else {
+        sectionInner = `${sectionInner}\n${statementsBlock}`;
+      }
+    }
+
+    const rebuiltBlock = [
+      `                    <xsl:if test="${testExpression}">`,
+      sectionInner.trim(),
+      '                    </xsl:if>',
+      `                    ${endMarker}`
+    ].join('\n');
+
+    return text.replace(extract.block, rebuiltBlock);
+  };
+
+  let output = copyrightExtract.textWithoutBlock;
+  output = insertIntoSection(
+    output,
+    'SECTION 11A - DIGITAL ARTICLE',
+    '<!-- ===== END SECTION 11A - DIGITAL ARTICLE ===== -->',
+    stripDigitalArticleWrapper,
+    "notification_data/metadata/material_type = 'Article'"
+  );
+  output = insertIntoSection(
+    output,
+    'SECTION 11B - DIGITAL BOOK/CHAPTER',
+    '<!-- ===== END SECTION 11B - DIGITAL BOOK/CHAPTER ===== -->',
+    stripDigitalChapterWrapper,
+    "notification_data/metadata/material_type = 'Book'"
+  );
+
+  return output;
 }
 
 function splitDigitalInternalBarcode(innerBlock) {
@@ -3348,7 +3427,10 @@ function updateXslLineCount(text) {
 
 async function renderTransformedOutput(xslText, state) {
   renderedPreview.innerHTML = '';
-  renderedPreview.classList.toggle('section-split-layout', shouldUseSectionSplitLayout(state) || shouldUseBorrowingReceiveSplitLayout(state));
+  renderedPreview.classList.toggle(
+    'section-split-layout',
+    shouldUseSectionSplitLayout(state) || shouldUseDigitalSectionSplitLayout(state) || shouldUseBorrowingReceiveSplitLayout(state)
+  );
 
   if (!window.XSLTProcessor) {
     renderedPreview.textContent = 'This browser does not support in-page XSLT preview.';

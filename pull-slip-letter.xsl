@@ -268,44 +268,62 @@
 
       <!-- ================================================================
            SECTION 03 - HEAD (TITLE + PRINT CSS)
-           NOTE: The CSS below enforces "single page" behavior by hard-locking
-                 the printable viewport. Content that exceeds height will CLIP.
+           NOTE: The CSS below keeps slip content at print size and lets
+                 longer article/chapter notices continue instead of clipping.
            ================================================================ -->
       <head>
         <title><xsl:value-of select="notification_data/general_data/subject" /></title>
 
         <!-- ================================================================
-             SECTION 03A - PRINT CSS (100% SINGLE-PAGE "PARANOID" MODE)
+             SECTION 03A - PRINT CSS
              ================================================================ -->
         <style type="text/css" media="print">
-          @page { size: 3.75in 11in; margin: 0.20in; }
+          @page { margin: 0.20in; }
 
-          html, body {
+          html {
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: visible !important;
+          }
+
+          body {
             margin: 0 !important;
             padding: 0 !important;
             width: 3.35in !important;
-            height: 10.6in !important;
-            overflow: hidden !important;
+            min-height: 10.6in !important;
+            overflow: visible !important;
             page-break-before: avoid !important;
             page-break-after: avoid !important;
             break-before: avoid-page !important;
             break-after: avoid-page !important;
           }
 
+          body.section-split-layout {
+            width: 702px !important;
+            max-width: 702px !important;
+          }
+
           .rsSlipOuter {
             width: 3.35in !important;
-            height: 10.6in !important;
+            min-height: 10.6in !important;
             border: 2px solid #000 !important;
             box-sizing: border-box !important;
             padding: 0.08in !important;
-            overflow: hidden !important;
+            overflow: visible !important;
             page-break-before: avoid !important;
             page-break-after: avoid !important;
-            break-inside: avoid !important;
+            break-inside: auto !important;
+          }
+
+          body.section-split-layout .rsSlipOuter,
+          body.section-split-layout .rsSlipInner {
+            width: 702px !important;
+            max-width: 702px !important;
           }
 
           .rsSlipInner {
-            transform: scale(0.40);
+            width: 100% !important;
+            transform: none !important;
             transform-origin: top left;
           }
 
@@ -383,7 +401,7 @@
 
       <!-- ================================================================
            SECTION 04 - BODY ROOT
-           NOTE: Contains outer border wrapper and scaled inner content.
+           NOTE: Contains outer border wrapper and full-size inner content.
            ================================================================ -->
       <body class="@@LAYOUT_CLASS@@">
 
@@ -393,8 +411,8 @@
         <div class="rsSlipOuter">
 
           <!-- ==============================================================
-               SECTION 06 - INNER SCALED CONTENT WRAPPER
-               NOTE: This is scaled with transform; border remains full size.
+               SECTION 06 - INNER CONTENT WRAPPER
+               NOTE: This content prints at normal size within the border.
                ============================================================= -->
           <div class="rsSlip rsSlipInner">
 

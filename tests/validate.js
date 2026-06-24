@@ -32,9 +32,13 @@ assert(appJs.includes('function applyLabelChoice'), 'Expected label-selection lo
 assert(appJs.includes("pull-slip-letter.xsl"), 'Expected real Pull Slip Letter template mapping in app.js');
 assert(appJs.includes("form.addEventListener('submit'"), 'Expected submit-driven preview behavior in app.js');
 assert(appJs.includes('sample-input.xml'), 'Expected sample XML preview loading in app.js');
+assert(appJs.includes("const hasBothLabels = state.labelChoice === 'both-labels'"), 'Expected both physical labels to explicitly trigger split layout');
+assert(appJs.includes('hasBothLabels || metadataCount >= 8 || hasCheckboxConditionReport || state.includeCustomMessage'), 'Expected physical split layout to use the intended threshold conditions');
 
 assert(pullSlipXsl.includes('@@LOGO_URL@@'), 'Expected @@LOGO_URL@@ placeholder in pull-slip-letter.xsl');
 assert(pullSlipXsl.includes('SECTION 10B'), 'Expected label sections in pull-slip-letter.xsl');
+assert(!pullSlipXsl.includes('transform: scale(0.40)'), 'Pull Slip print CSS should not shrink content to 40% size');
+assert(!pullSlipXsl.includes('overflow: hidden !important'), 'Pull Slip print CSS should not hide overflowing notices or two-column content');
 
 assert(stylesCss.includes('[hidden]'), 'Expected hidden-element CSS safeguard in styles.css');
 assert(sampleXml.includes('<notification_data>'), 'Expected sample notification_data XML');
