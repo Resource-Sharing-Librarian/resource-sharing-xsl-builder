@@ -506,31 +506,31 @@ width:100%; text-shadow:1px 1px 1px #333; color:#fff; margin-top:1em;  font-weig
 const previewSampleDefinitions = {
   book: {
     label: 'Book',
-    file: './sample-input.xml'
+    file: './letters/pull-slip-letter/sample-input.xml'
   },
   'book-courier': {
     label: 'Book (Courier)',
-    file: './sample-input-CSU.xml'
+    file: './letters/pull-slip-letter/sample-input-CSU.xml'
   },
   'book-chapter': {
     label: 'Book Chapter',
-    file: './sample-book-chapter.xml'
+    file: './letters/pull-slip-letter/sample-book-chapter.xml'
   },
   article: {
     label: 'Article',
-    file: './sample-article.xml'
+    file: './letters/pull-slip-letter/sample-article.xml'
   },
   'borrowing-receive-slip': {
     label: 'Borrowing Receive Slip',
-    file: './sample-borrowing-receive-slip.xml'
+    file: './letters/borrowing-receive-slip/sample-borrowing-receive-slip.xml'
   },
   'hold-shelf': {
     label: 'Hold Shelf',
-    file: './sample-hold-shelf.xml'
+    file: './letters/pick-from-shelf/sample-hold-shelf.xml'
   },
   'resource-sharing': {
     label: 'Resource Sharing',
-    file: './sample-resource-sharing.xml'
+    file: './letters/pick-from-shelf/sample-resource-sharing.xml'
   }
 };
 
@@ -546,21 +546,21 @@ const letterDefinitions = {
     shortName: 'Pull Slip Letter',
     almaLetter: 'Ful Incoming Slip Letter',
     chunks: ['shell', 'real-template-file'],
-    templateFile: './pull-slip-letter.xsl'
+    templateFile: './letters/pull-slip-letter/pull-slip-letter.xsl'
   },
   'pick-from-shelf': {
     code: 'B',
     shortName: 'Pick from shelf (Alma P2P Pull Slip)',
     almaLetter: 'Ful Resource Request Letter',
     chunks: ['shell', 'real-template-file'],
-    templateFile: './pull-slip-request-letter.xsl'
+    templateFile: './letters/pick-from-shelf/pull-slip-request-letter.xsl'
   },
   'borrowing-receive-slip': {
     code: 'C',
     shortName: 'Borrowing Receive Slip',
     almaLetter: 'Resource Sharing Receive Slip Letter',
     chunks: ['shell', 'real-template-file'],
-    templateFile: './borrowing-receive-slip.xsl'
+    templateFile: './letters/borrowing-receive-slip/borrowing-receive-slip.xsl'
   },
   'return-label': {
     code: 'D',
@@ -2937,7 +2937,7 @@ function assembleScaffoldXsl(state) {
 async function getTemplateText(state) {
   const definition = getLetterDefinition(state.letterType);
   const templateFile = state.letterType === 'borrowing-receive-slip' && state.receiveSlipFormat === 'book-wrap'
-    ? './borrowing-receive-book-wrap.xsl'
+    ? './letters/borrowing-receive-slip/borrowing-receive-book-wrap.xsl'
     : definition.templateFile;
 
   if (!templateFile) {

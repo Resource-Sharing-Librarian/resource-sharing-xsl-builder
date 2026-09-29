@@ -15,9 +15,9 @@ function assert(condition, message) {
 
 const indexHtml = read('index.html');
 const appJs = read('app.js');
-const pullSlipXsl = read('pull-slip-letter.xsl');
+const pullSlipXsl = read('letters/pull-slip-letter/pull-slip-letter.xsl');
 const stylesCss = read('styles.css');
-const sampleXml = read('sample-input.xml');
+const sampleXml = read('letters/pull-slip-letter/sample-input.xml');
 
 assert(indexHtml.includes('name="libraryName"'), 'Expected Library Name field in index.html');
 assert(indexHtml.includes('name="letterType"'), 'Expected Letter to Customize field in index.html');
@@ -29,9 +29,9 @@ assert(indexHtml.includes('id="rendered-preview"'), 'Expected rendered preview c
 assert(appJs.includes('function applyTemplateReplacements'), 'Expected template replacement logic in app.js');
 assert(appJs.includes('@@LOGO_URL@@'), 'Expected logo placeholder replacement in app.js');
 assert(appJs.includes('function applyLabelChoice'), 'Expected label-selection logic in app.js');
-assert(appJs.includes("pull-slip-letter.xsl"), 'Expected real Pull Slip Letter template mapping in app.js');
+assert(appJs.includes("letters/pull-slip-letter/pull-slip-letter.xsl"), 'Expected real Pull Slip Letter template mapping in app.js');
 assert(appJs.includes("form.addEventListener('submit'"), 'Expected submit-driven preview behavior in app.js');
-assert(appJs.includes('sample-input.xml'), 'Expected sample XML preview loading in app.js');
+assert(appJs.includes('letters/pull-slip-letter/sample-input.xml'), 'Expected sample XML preview loading in app.js');
 assert(appJs.includes("const hasBothLabels = state.labelChoice === 'both-labels'"), 'Expected both physical labels to explicitly trigger split layout');
 assert(appJs.includes('hasBothLabels || metadataCount >= 8 || hasCheckboxConditionReport || state.includeCustomMessage'), 'Expected physical split layout to use the intended threshold conditions');
 

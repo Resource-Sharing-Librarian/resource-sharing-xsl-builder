@@ -19,7 +19,9 @@ Instead of editing raw XSL by hand, staff can answer a short form, preview the g
 - `index.html`: widget markup
 - `styles.css`: presentation
 - `app.js`: form logic, conditional questions, template loading, and XSL transformation
-- `pull-slip-letter.xsl`: current Ful Incoming Slip Letter source template
+- `letters/pull-slip-letter/`: Pull Slip Letter XSL and preview XML samples
+- `letters/pick-from-shelf/`: Pick from shelf XSL and preview XML samples
+- `letters/borrowing-receive-slip/`: Borrowing Receive Slip XSL and preview XML samples
 
 ## How to run
 
@@ -61,10 +63,10 @@ If you want the app to live directly inside an existing page instead of an `ifra
 
 ## Extending the project
 
-Letter logic currently lives in `app.js`, and real letter templates can live as separate `.xsl` files beside it:
+Letter logic currently lives in `app.js`, and real letter templates live in each letter's folder under `letters/`:
 
-- `templateFile` on a letter definition lets that letter load a real XSL file directly.
+- `templateFile` on a letter definition lets that letter load a real XSL file directly from its own folder.
 - `assembleScaffoldXsl()` stitches scaffold fragments together for letters that do not yet have a real template file.
 - `applyTemplateReplacements()` applies survey answers like logo URL and label choice to the selected template.
 
-To keep growing the app, add another letter definition, create the matching follow-up questions in `index.html`, and map those answers to template replacements in `app.js`.
+To keep growing the app, add another letter folder under `letters/`, add its letter definition, create the matching follow-up questions in `index.html`, and map those answers to template replacements in `app.js`.
