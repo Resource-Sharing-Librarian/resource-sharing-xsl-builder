@@ -22,6 +22,7 @@ Instead of editing raw XSL by hand, staff can answer a short form, preview the g
 - `letters/pull-slip-letter/`: Pull Slip Letter XSL and preview XML samples
 - `letters/pick-from-shelf/`: Pick from shelf XSL and preview XML samples
 - `letters/borrowing-receive-slip/`: Borrowing Receive Slip XSL and preview XML samples
+- `letters/resource-sharing-return-slip-letter/`: Resource Sharing Return Slip Letter XSL and preview XML sample
 
 ## How to run
 

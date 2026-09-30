@@ -48,6 +48,7 @@
               <option value="pull-slip-letter">Ful Incoming Slip Letter</option>
               <option value="pick-from-shelf">Ful Resource Request Letter</option>
               <option value="borrowing-receive-slip">Resource Sharing Receive Slip Letter</option>
+              <option value="resource-sharing-return-slip-letter">Resource Sharing Return Slip Letter</option>
             </select>
           </label>
         </div>
@@ -110,10 +111,11 @@
           </label>
 
           <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip">
-            <span>Do you want to add your library logo to the Letter?</span>
+            <span>Do you want to add a logo to the Letter?</span>
             <select name="includeLogo">
               <option value="" selected>Select an option</option>
-              <option value="yes">Yes</option>
+              <option value="alma-logo">Yes, the library logo configured in Alma</option>
+              <option value="yes">Yes, add a logo from a URL I will provide</option>
               <option value="no">No</option>
             </select>
           </label>
@@ -241,7 +243,6 @@
               <div class="metadata-option-grid">
                 <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="edition"><span>Edition</span></label>
                 <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="isbn"><span>ISBN</span></label>
-                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="shelving-location-for-item"><span>Shelving Location for Item</span></label>
               </div>
             </div>
 
@@ -459,6 +460,7 @@ This institution reserves the right to refuse to accept a copying order, if, in 
           <button type="button" class="button primary preview-sample-button" data-preview-sample="article" aria-label="Preview Article XML">Article</button>
           <button type="button" class="button primary preview-sample-button" data-preview-sample="resource-sharing" aria-label="Preview Resource Sharing XML" hidden>Resource Sharing</button>
           <button type="button" class="button primary preview-sample-button" data-preview-sample="hold-shelf" aria-label="Preview Hold Shelf XML" hidden>Hold Shelf</button>
+          <button type="button" class="button primary preview-sample-button" data-preview-sample="resource-sharing-return-slip" aria-label="Preview Resource Sharing Return Slip XML" hidden>Return Slip</button>
         </div>
       </div>
       <div id="rendered-preview" role="region" aria-live="polite" aria-busy="false" aria-label="Rendered letter preview" tabindex="0"></div>

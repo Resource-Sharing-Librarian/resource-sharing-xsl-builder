@@ -22,12 +22,20 @@ const PREVIEW_PAGE_MARGIN = 48;
 const LANDSCAPE_PREVIEW_PAGE_WIDTH = 1056;
 const LANDSCAPE_PREVIEW_PAGE_HEIGHT = 816;
 const LANDSCAPE_BOOK_WRAP_PREVIEW_PAGE_MARGIN = 24;
+const ALMA_CONFIGURED_LOGO_SRC = 'cid:logo.jpg';
 const DEFAULT_ACCESSIBILITY_STATEMENT = `<<Library>> is committed to accessibility. If you have any problems accessing this material, please contact the <<Accessibility Contact>> at <<Contact Phone>> or <<Contact Email>>.`;
 const DEFAULT_COPYRIGHT_STATEMENT = `The copyright law of the United States (Title 17, United States Code), governs the making of photocopies or other reproductions of copyrighted material.
 Under certain conditions specified in the law, libraries and archives are authorized to furnish a photocopy or other reproduction.
 One of these specified conditions is that the photocopy or reproduction is not to be "used for any purpose other than private study, scholarship, or research."
 If a user makes a request for, or later uses, a photocopy or reproduction for purposes in excess of "fair use," that user may be liable for copyright infringement.
 This institution reserves the right to refuse to accept a copying order, if, in its judgment, fulfillment of the order would involve violation of copyright law.`;
+const PREVIEW_ALMA_LOGO_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="280" height="96" viewBox="0 0 280 96">
+  <rect width="280" height="96" fill="#f7f9fb" stroke="#9aa7b2" stroke-width="2"/>
+  <text x="140" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="700" fill="#243447">Library Logo</text>
+  <text x="140" y="66" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#52616d">Configured in Alma</text>
+</svg>
+`)}`;
   const PREVIEW_GROUP_QUALIFIER_BARCODE_SRC = `data:image/svg+xml;utf8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" width="224" height="104" viewBox="0 0 224 104">
   <rect width="224" height="104" fill="#fff"/>
@@ -531,13 +539,18 @@ const previewSampleDefinitions = {
   'resource-sharing': {
     label: 'Resource Sharing',
     file: './letters/pick-from-shelf/sample-resource-sharing.xml'
+  },
+  'resource-sharing-return-slip': {
+    label: 'Resource Sharing Return Slip',
+    file: './letters/resource-sharing-return-slip-letter/sample-resource-sharing-return-slip.xml'
   }
 };
 
 const previewSamplesByLetter = {
   'pull-slip-letter': ['book', 'book-chapter', 'article'],
   'pick-from-shelf': ['resource-sharing', 'hold-shelf'],
-  'borrowing-receive-slip': ['borrowing-receive-slip']
+  'borrowing-receive-slip': ['borrowing-receive-slip'],
+  'resource-sharing-return-slip-letter': ['resource-sharing-return-slip']
 };
 
 const letterDefinitions = {
@@ -562,11 +575,12 @@ const letterDefinitions = {
     chunks: ['shell', 'real-template-file'],
     templateFile: './letters/borrowing-receive-slip/borrowing-receive-slip.xsl'
   },
-  'return-label': {
+  'resource-sharing-return-slip-letter': {
     code: 'D',
-    shortName: 'Return Label',
+    shortName: 'Resource Sharing Return Slip Letter',
     almaLetter: 'Resource Sharing Return Slip Letter',
-    chunks: ['shell', 'letter-meta', 'library-header', 'shipping-fields', 'return-label', 'staff-contact', 'closing']
+    chunks: ['shell', 'real-template-file'],
+    templateFile: './letters/resource-sharing-return-slip-letter/resource-sharing-return-slip-letter.xsl'
   },
   'query-to-patron': {
     code: 'E',
@@ -1430,11 +1444,10 @@ function applyMetadataSelection(templateText, state) {
       'oclc-number',
       'part',
       'borrower-reference',
-      'request-note',
+    'request-note',
     'requester-email',
     'edition',
     'isbn',
-    'shelving-location-for-item',
     'chapter-title',
     'chapter-author',
     'chapter-number',
@@ -1480,8 +1493,7 @@ const PHYSICAL_SPLIT_ELIGIBLE_METADATA = new Set([
   'request-note',
   'requester-email',
   'edition',
-  'isbn',
-  'shelving-location-for-item'
+  'isbn'
 ]);
 
 const DIGITAL_SPLIT_ELIGIBLE_METADATA = new Set([
@@ -2531,14 +2543,18 @@ function applyDigitalSectionSplitLayout(templateText, state) {
 
   const buildDigitalSplitBlock = (testExpression, leftContent, customMessageBlock, barcodeBlock, externalBarcodeBlock = '') => [
     `                    <xsl:if test="${testExpression}">`,
-    '                      <div style="position:relative; width:702px !important; max-width:702px !important; margin:0;">',
-    '                        <div style="width:336px !important; min-width:336px; max-width:336px; margin-right:366px; vertical-align:top; text-align:left;">',
-    '                          <table role="presentation" cellspacing="0" cellpadding="2" border="0" style="width:336px; max-width:336px; table-layout:fixed;">',
+    '                      <tr>',
+    '                        <td style="width:702px !important; border:0; padding:0;" colspan="2">',
+    '                          <div style="position:relative; width:702px !important; max-width:702px !important; margin:0;">',
+    '                            <div style="width:336px !important; min-width:336px; max-width:336px; margin-right:366px; vertical-align:top; text-align:left;">',
+    '                              <table role="presentation" cellspacing="0" cellpadding="2" border="0" style="width:336px; max-width:336px; table-layout:fixed;">',
     leftContent,
-    '                          </table>',
-    '                        </div>',
+    '                              </table>',
+    '                            </div>',
     buildDigitalRightBlock(customMessageBlock, barcodeBlock, externalBarcodeBlock),
-    '                      </div>',
+    '                          </div>',
+    '                        </td>',
+    '                      </tr>',
     '                    </xsl:if>'
   ].join('\n');
 
@@ -2552,10 +2568,7 @@ function applyDigitalSectionSplitLayout(templateText, state) {
     '                  <!-- ===== END SECTION 11 - DIGITAL ===== -->'
   ].join('\n');
 
-  return templateWithoutDigitalSection.replace(
-    '                </table>\n                <!-- ===== END SECTION 09 - MAIN CONTENT TABLE ===== -->',
-    `${rebuiltDigitalBlock}\n\n                </table>\n                <!-- ===== END SECTION 09 - MAIN CONTENT TABLE ===== -->`
-  );
+  return templateText.replace(digitalSectionBlock, rebuiltDigitalBlock);
 }
 
 function stripPhysicalSectionWrapper(physicalSectionBlock) {
@@ -2707,9 +2720,35 @@ function applySectionSplitLayout(templateText, state) {
   return output;
 }
 
+function applyAlmaConfiguredLogoChoice(templateText, state) {
+  if (state.includeLogo !== 'alma-logo') {
+    return templateText;
+  }
+
+  const almaLogoTemplate = [
+    '  <xsl:template name="print-library-logo">',
+    '    <table border="0" cellspacing="0" cellpadding="0" style="width:350px; max-width:350px; margin:0; border-collapse:collapse;">',
+    '      <tr><td height="12">&#160;</td></tr>',
+    '      <tr>',
+    '        <td align="center" style="text-align:center; width:350px;">',
+    '          <img src="cid:logo.jpg" alt="logo"/>',
+    '        </td>',
+    '      </tr>',
+    '      <tr><td height="12">&#160;</td></tr>',
+    '    </table>',
+    '  </xsl:template>'
+  ].join('\n');
+
+  return templateText.replace(
+    /\s*<xsl:template name="print-library-logo">[\s\S]*?<\/xsl:template>/,
+    `\n${almaLogoTemplate}`
+  );
+}
+
 function applyTemplateReplacements(templateText, state) {
   const logoUrl = state.includeLogo === 'yes' ? state.logoUrl : '';
   let output = templateText.replaceAll('@@LOGO_URL@@', logoUrl || '');
+  output = applyAlmaConfiguredLogoChoice(output, state);
 
     if (['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
       output = applyCreateDateChoice(output, state);
@@ -2787,7 +2826,12 @@ function normalizeXmlForParsing(text) {
 }
 
 function buildPreviewSafeXsl(xslText, state) {
-  if (state.letterType !== 'pick-from-shelf') {
+  const needsInlinePreviewIncludes = [
+    'pick-from-shelf',
+    'resource-sharing-return-slip-letter'
+  ].includes(state.letterType);
+
+  if (!needsInlinePreviewIncludes) {
     return xslText;
   }
 
@@ -3256,6 +3300,7 @@ function replacePreviewBarcodeImages(root) {
   root.querySelectorAll('img').forEach((image) => {
     const altText = (image.getAttribute('alt') || '').trim();
     const src = image.getAttribute('src') || '';
+    const isAlmaLogo = src === ALMA_CONFIGURED_LOGO_SRC;
     const isInternalIdBarcode = src.includes('resource_sharing_request_id');
     const isBorrowingReceiveBarcode = src.includes('Barcode.png') || altText === 'Barcode';
     const isPreviewBarcode = altText === 'group_qualifier'
@@ -3264,6 +3309,12 @@ function replacePreviewBarcodeImages(root) {
       || src.includes('externalId')
       || src.includes('resource_sharing_request_id')
       || isBorrowingReceiveBarcode;
+
+    if (isAlmaLogo) {
+      image.setAttribute('src', PREVIEW_ALMA_LOGO_SRC);
+      image.setAttribute('alt', 'preview Alma-configured library logo');
+      return;
+    }
 
     if (!isPreviewBarcode) {
       return;
@@ -3538,6 +3589,28 @@ async function render() {
   showToast('Successfully generated');
 }
 
+async function refreshGeneratedPreviewFromCurrentState() {
+  const state = readFormState();
+
+  if (!state.letterType || !preview.textContent.trim()) {
+    return;
+  }
+
+  try {
+    const xslText = await getTemplateText(state);
+    preview.textContent = xslText;
+    updateXslLineCount(xslText);
+    renderedPreview.textContent = 'Rendering sample output...';
+    renderedPreview.setAttribute('aria-busy', 'true');
+    await renderTransformedOutput(xslText, state);
+  } catch (error) {
+    console.error(error);
+    showToast('Preview refresh failed', 'error');
+  } finally {
+    renderedPreview.setAttribute('aria-busy', 'false');
+  }
+}
+
 form.addEventListener('submit', (event) => {
   event.preventDefault();
   render();
@@ -3553,6 +3626,13 @@ form.addEventListener('change', (event) => {
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement || event.target instanceof HTMLSelectElement) {
     clearFieldError(event.target);
   }
+
+  if (
+    event.target instanceof HTMLInputElement
+    && event.target.name === 'metadataOptions'
+  ) {
+    refreshGeneratedPreviewFromCurrentState();
+  }
 });
 
 form.elements.letterType.addEventListener('change', () => {
@@ -3561,35 +3641,43 @@ form.elements.letterType.addEventListener('change', () => {
 
 form.elements.includeCreateDate.addEventListener('change', () => {
   syncQuestionsFromChange('includeCreateDate');
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 form.elements.hasCustomHoldShelfLetter.addEventListener('change', () => {
   syncQuestionsFromChange('hasCustomHoldShelfLetter');
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 form.elements.includeLogo.addEventListener('change', () => {
   syncQuestionsFromChange('includeLogo');
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 form.elements.includeCopyrightStatement.addEventListener('change', () => {
   syncQuestionsFromChange('includeCopyrightStatement');
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 form.elements.includeAccessibilityStatement.addEventListener('change', () => {
   syncQuestionsFromChange('includeAccessibilityStatement');
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 form.elements.includeCustomMessage?.addEventListener('change', () => {
   syncQuestionsFromChange('includeCustomMessage');
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 form.elements.libraryGroup?.addEventListener('change', () => {
   syncSelectedPreviewSample();
   syncPreviewSampleButtons();
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 form.elements.accessibilityStatementMode?.addEventListener('change', () => {
   syncQuestionsFromChange('accessibilityStatementMode');
+  refreshGeneratedPreviewFromCurrentState();
 });
 
 generateAccessibilityStatementButton?.addEventListener('click', () => {
@@ -3602,14 +3690,17 @@ previewSampleButtons.forEach((button) => {
     syncPreviewSampleButtons();
     showToast(`${previewSampleDefinitions[selectedPreviewSample]?.label || 'Book'} XML Selected`);
 
-    const xslText = preview.textContent.trim();
+    const state = readFormState();
+    const xslText = state.letterType ? await getTemplateText(state) : '';
 
     if (!xslText) {
       return;
     }
 
+    preview.textContent = xslText;
+    updateXslLineCount(xslText);
     renderedPreview.textContent = 'Rendering sample output...';
-    await renderTransformedOutput(xslText, readFormState());
+    await renderTransformedOutput(xslText, state);
   });
 });
 
@@ -3626,6 +3717,7 @@ metadataSelectAllButtons.forEach((button) => {
     });
 
     showToast(`${button.dataset.metadataGroup || 'Metadata'} metadata selected`);
+    refreshGeneratedPreviewFromCurrentState();
   });
 });
 
