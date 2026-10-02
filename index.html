@@ -63,6 +63,24 @@
             </select>
           </label>
 
+          <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter">
+            <span>Do you want this to be just a shipping label or also include information on the book?</span>
+            <select name="returnSlipContentMode" required>
+              <option value="" selected>Select an option</option>
+              <option value="shipping-label-only">Just a shipping label</option>
+              <option value="include-book-information">Shipping label and book information</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="returnSlipContentMode" data-dependent-value="shipping-label-only">
+            <span>Printing size and method.</span>
+            <select name="returnSlipPrintMethod" required>
+              <option value="" selected>Select an option</option>
+              <option value="default-size">Default size</option>
+              <option value="full-page-multiple">Print full page for printing multiple per page</option>
+            </select>
+          </label>
+
           <label class="field field-wide" data-letter-question="pick-from-shelf">
             <span>Has your Circulation Department customized their Hold Shelf Letter (Ful Resource Request Slip Letter)?</span>
             <select name="hasCustomHoldShelfLetter">
@@ -121,6 +139,27 @@
           </label>
 
           <label class="field field-wide" data-letter-question="pull-slip-letter pick-from-shelf borrowing-receive-slip" data-dependent-question="includeLogo" data-dependent-value="yes">
+            <span>What is the URL for the logo you want printed on the slip?</span>
+            <small>The URL must link directly to a PNG or JPEG image.</small>
+            <input
+              type="url"
+              name="logoUrl"
+              required
+              value=""
+              placeholder="https://example.org/library-logo.png">
+          </label>
+
+          <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="returnSlipContentMode" data-dependent-value="include-book-information">
+            <span>Do you want to add a logo to the Letter?</span>
+            <select name="includeLogo">
+              <option value="" selected>Select an option</option>
+              <option value="alma-logo">Yes, the library logo configured in Alma</option>
+              <option value="yes">Yes, add a logo from a URL I will provide</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="includeLogo" data-dependent-value="yes" data-dependent-question-secondary="returnSlipContentMode" data-dependent-value-secondary="include-book-information">
             <span>What is the URL for the logo you want printed on the slip?</span>
             <small>The URL must link directly to a PNG or JPEG image.</small>
             <input

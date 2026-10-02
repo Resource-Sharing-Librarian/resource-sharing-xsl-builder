@@ -672,24 +672,59 @@ const chunkCatalog = [
 
 const defaultState = readFormState();
 
-function getActiveFieldValue(fieldName, selectedLetter) {
-  const candidates = Array.from(form.querySelectorAll(`[name="${fieldName}"]`));
+function getNamedFields(fieldName) {
+  return Array.from(form.querySelectorAll(`[name="${fieldName}"]`));
+}
+
+function getActiveField(fieldName, selectedLetter) {
+  const candidates = getNamedFields(fieldName);
 
   if (!candidates.length) {
-    return '';
+    return null;
   }
 
-  const matchingCandidate = candidates.find((field) => {
+  const visibleCandidate = candidates.find((field) => {
     const questionGroup = field.closest('[data-letter-question]');
 
     if (!questionGroup) {
       return true;
     }
 
-    return questionAppliesToLetter(questionGroup, selectedLetter) && !questionGroup.hidden;
+    return questionAppliesToLetter(questionGroup, selectedLetter)
+      && !questionGroup.hidden
+      && questionGroup.style.display !== 'none';
   });
 
-  return (matchingCandidate || candidates[0]).value || '';
+  if (visibleCandidate) {
+    return visibleCandidate;
+  }
+
+  return candidates.find((field) => {
+    const questionGroup = field.closest('[data-letter-question]');
+    return !questionGroup || questionAppliesToLetter(questionGroup, selectedLetter);
+  }) || candidates[0];
+}
+
+function getActiveFieldForElement(fieldName, dependentElement) {
+  const selectedLetter = form.elements.letterType.value;
+  const candidates = getNamedFields(fieldName);
+
+  if (!candidates.length) {
+    return null;
+  }
+
+  return candidates.find((field) => {
+    const questionGroup = field.closest('[data-letter-question]');
+
+    return questionGroup
+      && questionAppliesToLetter(questionGroup, selectedLetter)
+      && !questionGroup.hidden
+      && questionGroup.style.display !== 'none';
+  }) || getActiveField(fieldName, selectedLetter);
+}
+
+function getActiveFieldValue(fieldName, selectedLetter) {
+  return getActiveField(fieldName, selectedLetter)?.value || '';
 }
 
 function readFormState() {
@@ -700,11 +735,13 @@ function readFormState() {
     letterType: selectedLetter,
     hasCustomHoldShelfLetter: form.elements.hasCustomHoldShelfLetter?.value || '',
     customHoldShelfLetterXsl: form.elements.customHoldShelfLetterXsl?.value || '',
-      includeLogo: form.elements.includeLogo.value,
-      logoUrl: form.elements.logoUrl.value.trim(),
+      includeLogo: getActiveFieldValue('includeLogo', selectedLetter),
+      logoUrl: getActiveFieldValue('logoUrl', selectedLetter).trim(),
       includePartnerEmail: getActiveFieldValue('includePartnerEmail', selectedLetter),
       includePatronId: getActiveFieldValue('includePatronId', selectedLetter),
       receiveSlipFormat: getActiveFieldValue('receiveSlipFormat', selectedLetter),
+      returnSlipContentMode: getActiveFieldValue('returnSlipContentMode', selectedLetter),
+      returnSlipPrintMethod: getActiveFieldValue('returnSlipPrintMethod', selectedLetter),
       labelChoice: getActiveFieldValue('labelChoice', selectedLetter),
     includeCreateDate: form.elements.includeCreateDate.value,
     createDateFormat: form.elements.createDateFormat.value,
@@ -740,7 +777,15 @@ function resetFormForLetterChange(nextLetterType = '') {
       return;
     }
 
-    field.value = value;
+    const namedFields = getNamedFields(key);
+
+    if (namedFields.length > 1) {
+      namedFields.forEach((namedField) => {
+        namedField.value = value;
+      });
+    } else {
+      field.value = value;
+    }
   });
 
   form.querySelectorAll('input[name="metadataOptions"]').forEach((input) => {
@@ -947,7 +992,10 @@ function syncDependentQuestionAccessibility(selectedLetter) {
   });
 
   controlMap.forEach((elements, fieldName) => {
-    const controllingField = form.elements[fieldName];
+    const controllingField = elements
+      .map((element) => getActiveFieldForElement(fieldName, element))
+      .find(Boolean)
+      || getActiveField(fieldName, selectedLetter);
 
     if (!controllingField) {
       return;
@@ -961,8 +1009,6 @@ function syncDependentQuestionAccessibility(selectedLetter) {
   function syncLetterSpecificQuestions() {
     const selectedLetter = form.elements.letterType.value;
     const hasLetter = Boolean(selectedLetter);
-  const logoUrlField = form.elements.logoUrl;
-  const includeLogoField = form.elements.includeLogo;
   const customHoldShelfLetterField = form.elements.customHoldShelfLetterXsl;
   const hasCustomHoldShelfLetterField = form.elements.hasCustomHoldShelfLetter;
 
@@ -976,10 +1022,12 @@ function syncDependentQuestionAccessibility(selectedLetter) {
   });
 
     dependentQuestionGroups.forEach((element) => {
-    const controllingField = form.elements[element.dataset.dependentQuestion];
+    const controllingField = getActiveFieldForElement(element.dataset.dependentQuestion, element)
+      || getActiveField(element.dataset.dependentQuestion, selectedLetter);
     const expectedValue = element.dataset.dependentValue;
     const secondaryControllingField = element.dataset.dependentQuestionSecondary
-      ? form.elements[element.dataset.dependentQuestionSecondary]
+      ? getActiveFieldForElement(element.dataset.dependentQuestionSecondary, element)
+        || getActiveField(element.dataset.dependentQuestionSecondary, selectedLetter)
       : null;
     const secondaryExpectedValue = element.dataset.dependentValueSecondary;
     const shouldShow = hasLetter
@@ -1008,17 +1056,19 @@ function syncDependentQuestionAccessibility(selectedLetter) {
       field.required = defaultRequired && isVisible;
     });
 
-    if (logoUrlField && includeLogoField) {
-      const requiresLogoUrl = hasLetter
-        && ['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(selectedLetter)
-        && includeLogoField.value === 'yes';
+    form.querySelectorAll('input[name="logoUrl"]').forEach((logoUrlField) => {
+      const owningQuestion = logoUrlField.closest('[data-dependent-question], [data-letter-question]');
+      const isVisible = hasLetter
+        && owningQuestion
+        && !owningQuestion.hidden
+        && owningQuestion.style.display !== 'none';
 
-      logoUrlField.required = requiresLogoUrl;
+      logoUrlField.required = isVisible;
 
-    if (!requiresLogoUrl) {
-      logoUrlField.value = '';
-    }
-  }
+      if (!isVisible) {
+        logoUrlField.value = '';
+      }
+    });
 
   if (
     customHoldShelfLetterField
@@ -2745,10 +2795,136 @@ function applyAlmaConfiguredLogoChoice(templateText, state) {
   );
 }
 
+function buildReturnSlipLogoBlock(state) {
+  if (state.includeLogo === 'alma-logo') {
+    return [
+      '							<tr>',
+      '								<td style="text-align:center; padding:12px 0;">',
+      '									<img src="cid:logo.jpg" alt="logo"/>',
+      '								</td>',
+      '							</tr>'
+    ].join('\n');
+  }
+
+  if (state.includeLogo === 'yes' && state.logoUrl) {
+    return [
+      '							<tr>',
+      '								<td style="text-align:center; padding:12px 0;">',
+      `									<img src="${escapeHtml(state.logoUrl)}" alt="Library Logo" style="display:block; margin:0 auto; max-height:100px; max-width:350px;" />`,
+      '								</td>',
+      '							</tr>'
+    ].join('\n');
+  }
+
+  return '';
+}
+
+function applyReturnSlipLogoChoice(templateText, state) {
+  if (state.letterType !== 'resource-sharing-return-slip-letter') {
+    return templateText;
+  }
+
+  const logoBlock = buildReturnSlipLogoBlock(state);
+
+  return templateText.replace(
+    '							<!-- RETURN SLIP LOGO INSERTION POINT -->',
+    logoBlock
+  );
+}
+
+function buildReturnSlipShippingLabelBlock(state) {
+  const isFullPage = state.returnSlipPrintMethod === 'full-page-multiple';
+  const tableStyle = isFullPage
+    ? 'width:6.4in; max-width:6.4in; height:8.8in; table-layout:fixed; border-collapse:collapse; margin:0 auto; page-break-after:always;'
+    : 'width:350px; max-width:350px; table-layout:fixed; border-collapse:collapse;';
+  const referenceCellStyle = isFullPage
+    ? 'font-size:24px;width:6.4in; padding:0.2in 0.28in; line-height:1.15;'
+    : 'font-size:12px;width:350px; padding:6px 8px;';
+  const returnCellStyle = isFullPage
+    ? 'font-size:34px;width:6.4in; height:2.2in; padding:0.28in; line-height:1.05;'
+    : 'font-size:16px;width:350px; padding:6px 8px;';
+  const shipCellStyle = isFullPage
+    ? 'font-size:42px;width:6.4in; height:5.0in; padding:0.28in; line-height:1.05;'
+    : 'font-size:18px;width:350px; padding:6px 8px;';
+  const sectionLabelStyle = isFullPage
+    ? 'font-size:28px; font-weight:bold;'
+    : 'font-size:12px;';
+
+  return [
+    `						<table class="shippingLabel" cellspacing="0" cellpadding="0" border="1" style="${tableStyle}">`,
+    '							<tr>',
+    `								<td style="${referenceCellStyle}">`,
+    '									<b>Title: </b><xsl:value-of select="notification_data/request/display/title"/>',
+    '									<br/>',
+    '									<b>External ID: </b><xsl:value-of select="notification_data/request/external_request_id"/>',
+    '								</td>',
+    '							</tr>',
+    '							<tr>',
+    `								<td style="${returnCellStyle}">`,
+    `									<span style="${sectionLabelStyle}">Return To: </span>`,
+    '									<br/>',
+    '									<center><b><xsl:value-of select="notification_data/library/name"/></b></center>',
+    '									<xsl:if test="notification_data/library/address/line1 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line1"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line2 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line2"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line3 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line3"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line4 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line4"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line5 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line5"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/city !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/city"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/country !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/country"/></b></center></xsl:if>',
+    '									<br/>',
+    '								</td>',
+    '							</tr>',
+    '							<tr>',
+    `								<td style="${shipCellStyle}">`,
+    `									<span style="${sectionLabelStyle}">Ship To: </span>`,
+    '									<br/>',
+    '									<center><b><xsl:value-of select="notification_data/partner_name"/></b></center>',
+    '									<xsl:if test="notification_data/partner_address/line1 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line1"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line2 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line2"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line3 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line3"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line4 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line4"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line5 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line5"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/city !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/city"/></b></center></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/country !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/country"/></b></center></xsl:if>',
+    '									<br/>',
+    '								</td>',
+    '							</tr>',
+    '						</table>'
+  ].join('\n');
+}
+
+function applyReturnSlipContentChoice(templateText, state) {
+  if (state.letterType !== 'resource-sharing-return-slip-letter') {
+    return templateText;
+  }
+
+  if (state.returnSlipContentMode === 'shipping-label-only') {
+    return templateText.replace(
+      /[ \t]*<!-- BEGIN RETURN SLIP CONTENT -->[\s\S]*?<!-- END RETURN SLIP CONTENT -->[^\S\r\n]*/g,
+      `\n${buildReturnSlipShippingLabelBlock(state)}\n`
+    );
+  }
+
+  if (state.returnSlipContentMode === 'include-book-information') {
+    const defaultLabelState = {
+      ...state,
+      returnSlipPrintMethod: 'default-size'
+    };
+
+    return templateText.replace(
+      '<!-- END RETURN SLIP CONTENT -->',
+      `<br/><br/>\n${buildReturnSlipShippingLabelBlock(defaultLabelState)}\n						<!-- END RETURN SLIP CONTENT -->`
+    );
+  }
+
+  return templateText;
+}
+
 function applyTemplateReplacements(templateText, state) {
   const logoUrl = state.includeLogo === 'yes' ? state.logoUrl : '';
   let output = templateText.replaceAll('@@LOGO_URL@@', logoUrl || '');
   output = applyAlmaConfiguredLogoChoice(output, state);
+  output = applyReturnSlipLogoChoice(output, state);
 
     if (['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
       output = applyCreateDateChoice(output, state);
@@ -2758,6 +2934,8 @@ function applyTemplateReplacements(templateText, state) {
     if (state.letterType === 'borrowing-receive-slip') {
       output = applyBorrowingReceivePatronIdChoice(output, state);
     }
+
+    output = applyReturnSlipContentChoice(output, state);
 
     if (state.letterType === 'pick-from-shelf') {
       let localCircHtml = '';
@@ -3649,8 +3827,15 @@ form.elements.hasCustomHoldShelfLetter.addEventListener('change', () => {
   refreshGeneratedPreviewFromCurrentState();
 });
 
-form.elements.includeLogo.addEventListener('change', () => {
-  syncQuestionsFromChange('includeLogo');
+form.querySelectorAll('select[name="includeLogo"]').forEach((field) => {
+  field.addEventListener('change', () => {
+    syncQuestionsFromChange('includeLogo');
+    refreshGeneratedPreviewFromCurrentState();
+  });
+});
+
+form.elements.returnSlipContentMode?.addEventListener('change', () => {
+  syncQuestionsFromChange('returnSlipContentMode');
   refreshGeneratedPreviewFromCurrentState();
 });
 
