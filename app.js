@@ -11,6 +11,7 @@ const metadataSelectAllButtons = Array.from(document.querySelectorAll('.metadata
 const letterSpecificQuestions = document.querySelector('#letter-specific-questions');
 const letterQuestionGroups = Array.from(document.querySelectorAll('[data-letter-question]'));
 const dependentQuestionGroups = Array.from(document.querySelectorAll('[data-dependent-question]'));
+const additionalPodFields = document.querySelector('#additional-pod-fields');
 const templateCache = {};
 const sampleXmlCache = {};
 let toastTimeoutId = null;
@@ -740,6 +741,16 @@ function getActiveMetadataOptions(selectedLetter) {
     .map((input) => input.value);
 }
 
+function getAdditionalPreventSpecificPodNames(selectedLetter) {
+  if (selectedLetter !== 'resource-sharing-return-slip-letter') {
+    return [];
+  }
+
+  return Array.from(form.querySelectorAll('input[name="additionalPreventSpecificPodName"]'))
+    .map((input) => input.value.trim())
+    .filter(Boolean);
+}
+
 function readFormState() {
   const selectedLetter = form.elements.letterType.value;
 
@@ -755,6 +766,9 @@ function readFormState() {
       receiveSlipFormat: getActiveFieldValue('receiveSlipFormat', selectedLetter),
       returnSlipContentMode: getActiveFieldValue('returnSlipContentMode', selectedLetter),
       returnSlipPrintMethod: getActiveFieldValue('returnSlipPrintMethod', selectedLetter),
+      preventSpecificPods: getActiveFieldValue('preventSpecificPods', selectedLetter),
+      preventSpecificPodName: getActiveFieldValue('preventSpecificPodName', selectedLetter).trim(),
+      additionalPreventSpecificPodNames: getAdditionalPreventSpecificPodNames(selectedLetter),
       labelChoice: getActiveFieldValue('labelChoice', selectedLetter),
     includeCreateDate: form.elements.includeCreateDate.value,
     createDateFormat: form.elements.createDateFormat.value,
@@ -942,6 +956,79 @@ function clearAllFieldErrors() {
   form.querySelectorAll('input, select, textarea').forEach((field) => {
     clearFieldError(field);
   });
+}
+
+function clearAdditionalPodFields() {
+  if (additionalPodFields) {
+    additionalPodFields.innerHTML = '';
+  }
+}
+
+function removeFollowingAdditionalPodEntries(entry) {
+  let nextEntry = entry?.nextElementSibling;
+
+  while (nextEntry) {
+    const entryToRemove = nextEntry;
+    nextEntry = nextEntry.nextElementSibling;
+    entryToRemove.remove();
+  }
+}
+
+function createAdditionalPodEntry() {
+  const entry = document.createElement('div');
+  entry.className = 'additional-pod-entry';
+
+  entry.innerHTML = [
+    '<label class="field field-wide">',
+    '  <span>What pods? (must be exact name)</span>',
+    '  <input type="text" name="additionalPreventSpecificPodName" value="" required>',
+    '</label>',
+    '<label class="field field-wide">',
+    '  <span>Do you need to stop printing for additional pods?</span>',
+    '  <select name="additionalPreventSpecificPods" required>',
+    '    <option value="" selected>Select an option</option>',
+    '    <option value="yes">Yes</option>',
+    '    <option value="no">No</option>',
+    '  </select>',
+    '</label>'
+  ].join('');
+
+  const input = entry.querySelector('input[name="additionalPreventSpecificPodName"]');
+  const select = entry.querySelector('select[name="additionalPreventSpecificPods"]');
+
+  input?.addEventListener('input', () => {
+    clearFieldError(input);
+    refreshGeneratedPreviewFromCurrentState();
+  });
+
+  select?.addEventListener('change', () => {
+    clearFieldError(select);
+    if (select.value === 'yes') {
+      appendAdditionalPodEntry();
+    } else {
+      removeFollowingAdditionalPodEntries(entry);
+    }
+    refreshGeneratedPreviewFromCurrentState();
+  });
+
+  return entry;
+}
+
+function appendAdditionalPodEntry() {
+  if (!additionalPodFields) {
+    return;
+  }
+
+  const lastSelect = additionalPodFields.querySelector('.additional-pod-entry:last-child select[name="additionalPreventSpecificPods"]');
+
+  if (lastSelect && lastSelect.value === 'yes') {
+    const lastEntry = lastSelect.closest('.additional-pod-entry');
+    if (lastEntry?.nextElementSibling) {
+      return;
+    }
+  }
+
+  additionalPodFields.appendChild(createAdditionalPodEntry());
 }
 
 function announceFieldError(field, message) {
@@ -3058,7 +3145,8 @@ function applyTemplateReplacements(templateText, state) {
   const letterModule = getLetterModule(state.letterType);
   if (letterModule?.applyTemplateReplacements) {
     output = letterModule.applyTemplateReplacements(output, state, {
-      escapeHtml
+      escapeHtml,
+      escapeXml
     });
   }
 
@@ -3961,6 +4049,25 @@ form.elements.returnSlipContentMode?.addEventListener('change', () => {
   refreshGeneratedPreviewFromCurrentState();
 });
 
+form.elements.preventSpecificPods?.addEventListener('change', () => {
+  syncQuestionsFromChange('preventSpecificPods');
+  if (form.elements.preventSpecificPods.value !== 'yes') {
+    clearAdditionalPodFields();
+  } else if (form.elements.preventAdditionalPods?.value === 'yes') {
+    appendAdditionalPodEntry();
+  }
+  refreshGeneratedPreviewFromCurrentState();
+});
+
+form.elements.preventAdditionalPods?.addEventListener('change', () => {
+  if (form.elements.preventAdditionalPods.value === 'yes') {
+    appendAdditionalPodEntry();
+  } else {
+    clearAdditionalPodFields();
+  }
+  refreshGeneratedPreviewFromCurrentState();
+});
+
 form.elements.includeCopyrightStatement.addEventListener('change', () => {
   syncQuestionsFromChange('includeCopyrightStatement');
   refreshGeneratedPreviewFromCurrentState();
@@ -4048,6 +4155,7 @@ resetButton.addEventListener('click', () => {
       field.value = value;
     });
 
+    clearAdditionalPodFields();
     syncLetterSpecificQuestions();
     syncSelectedPreviewSample();
     syncPreviewSampleButtons();

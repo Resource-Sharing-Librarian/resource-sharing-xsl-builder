@@ -67,6 +67,31 @@
             </select>
           </label>
 
+          <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter">
+            <span>Do you need the Letter to be prevented from printing for items in specific pods?</span>
+            <select name="preventSpecificPods">
+              <option value="" selected>Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="preventSpecificPods" data-dependent-value="yes">
+            <span>What pods? (must be exact name)</span>
+            <input type="text" name="preventSpecificPodName" value="" required>
+          </label>
+
+          <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="preventSpecificPods" data-dependent-value="yes">
+            <span>Do you need to stop printing for additional pods?</span>
+            <select name="preventAdditionalPods" required>
+              <option value="" selected>Select an option</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+
+          <div class="field-wide" id="additional-pod-fields" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="preventSpecificPods" data-dependent-value="yes"></div>
+
           <label class="field field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="returnSlipContentMode" data-dependent-value="shipping-label-only">
             <span>Printing size and method.</span>
             <select name="returnSlipPrintMethod" required>

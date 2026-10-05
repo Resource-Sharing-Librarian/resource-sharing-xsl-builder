@@ -232,11 +232,33 @@
     return templateText;
   }
 
+  function applyPodPrintPrevention(templateText, state, helpers) {
+    if (state.preventSpecificPods !== 'yes') {
+      return templateText;
+    }
+
+    const podNames = [
+      state.preventSpecificPodName || 'Pod',
+      ...(state.additionalPreventSpecificPodNames || [])
+    ].filter(Boolean);
+    const podPreventionBlock = podNames.flatMap((podName) => [
+      `		<xsl:if  test="notification_data/pod_name='${helpers.escapeXml(podName)}'" >`,
+      '			<xsl:message terminate="yes">Stops the label for libraries in the pod</xsl:message>',
+      '		</xsl:if>'
+    ]).join('\n');
+
+    return templateText.replace(
+      /(<xsl:template match="\/">\s*)<html>/,
+      `$1${podPreventionBlock}\n\t\t<html>`
+    );
+  }
+
   window.letterModules = window.letterModules || {};
   window.letterModules[letterId] = {
     metadataOptions,
     applyTemplateReplacements(templateText, state, helpers) {
-      let output = applyLogoChoice(templateText, state, helpers);
+      let output = applyPodPrintPrevention(templateText, state, helpers);
+      output = applyLogoChoice(output, state, helpers);
       output = applyMetadataSelection(output, state);
       output = applyContentChoice(output, state);
       return output;
