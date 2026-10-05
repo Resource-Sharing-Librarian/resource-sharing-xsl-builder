@@ -126,7 +126,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/incoming_request/requester_email) != ''">
                               <tr>
                                  <td style="width:350px;">
-                                    <b>@@requester_email@@:</b>
+                                    <b>Requester Email:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/incoming_request/requester_email" />
                                  </td>
@@ -195,7 +195,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/title) != ''">
                               <tr>
                                  <td>
-                                    <b>@@title@@:</b>
+                                    <b>Title:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/phys_item_display/title" />
                                  </td>
@@ -206,7 +206,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/author) != ''">
                               <tr>
                                  <td>
-                                    <b>@@author@@:</b>
+                                    <b>Author:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/phys_item_display/author" />
                                  </td>
@@ -217,7 +217,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/publication_date) != ''">
                               <tr>
                                  <td>
-                                    <b>@@year@@:</b>
+                                    <b>Year:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/phys_item_display/publication_date" />
                                  </td>
@@ -228,7 +228,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/metadata/volume) != '' or normalize-space(notification_data/request/volume) != ''">
                               <tr>
                                  <td>
-                                    <b>@@volume@@:</b>
+                                    <b>Volume:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/metadata/volume) != ''">
@@ -246,7 +246,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/metadata/issue) != '' or normalize-space(notification_data/request/issue) != '' or normalize-space(notification_data/phys_item_display/issue_level_description) != ''">
                               <tr>
                                  <td>
-                                    <b>@@issue@@:</b>
+                                    <b>Issue:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/metadata/issue) != ''">
@@ -267,7 +267,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/request/pages) != '' or normalize-space(notification_data/metadata/pages) != ''">
                               <tr>
                                  <td>
-                                    <b>@@pages@@:</b>
+                                    <b>Pages:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/request/pages) != ''">
@@ -285,7 +285,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/publisher) != ''">
                               <tr>
                                  <td>
-                                    <b>@@publisher@@:</b>
+                                    <b>Publisher:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/phys_item_display/publisher" />
                                  </td>
@@ -296,7 +296,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/publication_place) != ''">
                               <tr>
                                  <td>
-                                    <b>@@place_of_publication@@:</b>
+                                    <b>Place of Publication:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/phys_item_display/publication_place" />
                                  </td>
@@ -307,7 +307,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="contains(notification_data/metadata,'&lt;dc:oclc_number&gt;')">
                               <tr>
                                  <td>
-                                    <b>@@oclc_number@@:</b>
+                                    <b>OCLC Number:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="substring-before(substring-after(notification_data/metadata,'&lt;dc:oclc_number&gt;'),'&lt;/dc:oclc_number&gt;')" />
                                  </td>
@@ -318,7 +318,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/edition) != ''">
                               <tr>
                                  <td>
-                                    <b>@@edition@@:</b>
+                                    <b>Edition:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/phys_item_display/edition" />
                                  </td>
@@ -329,7 +329,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/isbn) != ''">
                               <tr>
                                  <td>
-                                    <b>@@isbn@@:</b>
+                                    <b>ISBN:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/phys_item_display/isbn" />
                                  </td>
@@ -340,7 +340,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/phys_item_display/issn) != '' or normalize-space(notification_data/metadata/issn) != ''">
                               <tr>
                                  <td>
-                                    <b>@@issn@@:</b>
+                                    <b>ISSN:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/phys_item_display/issn) != ''">
@@ -358,7 +358,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/incoming_request/external_request_id) != ''">
                               <tr>
                                  <td>
-                                    <b>@@borrower_reference@@:</b>
+                                    <b>External ID:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/incoming_request/external_request_id" />
                                  </td>
@@ -369,7 +369,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/metadata/chapter) != ''">
                               <tr>
                                  <td>
-                                    <b>@@chapter_number@@:</b>
+                                    <b>Chapter Number:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:value-of select="notification_data/metadata/chapter" />
                                  </td>
@@ -380,7 +380,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/request/chapter_article_title) != '' or normalize-space(notification_data/metadata/chapter_title) != ''">
                               <tr>
                                  <td>
-                                    <b>@@chapter_title@@:</b>
+                                    <b>Chapter Title:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/request/chapter_article_title) != ''">
@@ -398,7 +398,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/request/chapter_article_author) != '' or normalize-space(notification_data/metadata/chapter_author) != ''">
                               <tr>
                                  <td>
-                                    <b>@@chapter_author@@:</b>
+                                    <b>Chapter Author:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/request/chapter_article_author) != ''">
@@ -416,7 +416,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/incoming_request/journal_title) != '' or normalize-space(notification_data/metadata/journal_title) != ''">
                               <tr>
                                  <td>
-                                    <b>@@journal_title@@:</b>
+                                    <b>Journal Title:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/incoming_request/journal_title) != ''">
@@ -434,7 +434,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                            <xsl:if test="normalize-space(notification_data/metadata/normalized_title) != '' or normalize-space(notification_data/request/chapter_article_title) != ''">
                               <tr>
                                  <td>
-                                    <b>@@article_title@@:</b>
+                                    <b>Article Title:</b>
                                     <xsl:text> </xsl:text>
                                     <xsl:choose>
                                        <xsl:when test="normalize-space(notification_data/metadata/normalized_title) != ''">
@@ -487,7 +487,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                                     <b>Title: </b>
                                     <xsl:value-of select="notification_data/phys_item_display/title" />
                                     <br />
-                                    <b>Borrower Reference: </b>
+                                    <b>External ID: </b>
                                     <xsl:value-of select="notification_data/incoming_request/external_request_id" />
                                  </td>
                               </tr>
@@ -546,7 +546,7 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
                                     <b>Title: </b>
                                     <xsl:value-of select="notification_data/phys_item_display/title" />
                                     <br />
-                                    <b>Borrower Reference: </b>
+                                    <b>External ID: </b>
                                     <xsl:value-of select="notification_data/incoming_request/external_request_id" />
                                  </td>
                               </tr>

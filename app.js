@@ -215,17 +215,17 @@ const DEFAULT_PICK_FROM_SHELF_HOLD_SHELF_HTML = `
 
 							<xsl:if test="notification_data/phys_item_display/isbn != ''">
 								<tr>
-								<td>@@isbn@@: <xsl:value-of select="notification_data/phys_item_display/isbn"/></td>
+								<td>ISBN: <xsl:value-of select="notification_data/phys_item_display/isbn"/></td>
 								</tr>
 							</xsl:if>
 							<xsl:if test="notification_data/phys_item_display/issn != ''">
 								<tr>
-								<td>@@issn@@: <xsl:value-of select="notification_data/phys_item_display/issn"/></td>
+								<td>ISSN: <xsl:value-of select="notification_data/phys_item_display/issn"/></td>
 								</tr>
 							</xsl:if>
 							<xsl:if test="notification_data/phys_item_display/edition != ''">
 								<tr>
-								<td>@@edition@@: <xsl:value-of select="notification_data/phys_item_display/edition"/></td>
+								<td>Edition: <xsl:value-of select="notification_data/phys_item_display/edition"/></td>
 								</tr>
 							</xsl:if>
 							<xsl:if test="notification_data/phys_item_display/imprint != ''">
@@ -326,7 +326,7 @@ const DEFAULT_PICK_FROM_SHELF_HOLD_SHELF_HTML = `
 
 						<xsl:if test="notification_data/request/note != ''">
 							<tr>
-							<td><strong>@@request_note@@:</strong> <xsl:value-of select="notification_data/request/note"/></td>
+							<td><strong>Request Note:</strong> <xsl:value-of select="notification_data/request/note"/></td>
 						</tr>
 						</xsl:if>
 
@@ -727,11 +727,24 @@ function getActiveFieldValue(fieldName, selectedLetter) {
   return getActiveField(fieldName, selectedLetter)?.value || '';
 }
 
+function getActiveMetadataOptions(selectedLetter) {
+  return Array.from(form.querySelectorAll('input[name="metadataOptions"]:checked'))
+    .filter((input) => {
+      const questionGroup = input.closest('[data-letter-question]');
+
+      return questionGroup
+        && questionAppliesToLetter(questionGroup, selectedLetter)
+        && !questionGroup.hidden
+        && questionGroup.style.display !== 'none';
+    })
+    .map((input) => input.value);
+}
+
 function readFormState() {
   const selectedLetter = form.elements.letterType.value;
 
   return {
-    libraryName: form.elements.libraryName.value.trim(),
+    libraryName: '',
     letterType: selectedLetter,
     hasCustomHoldShelfLetter: form.elements.hasCustomHoldShelfLetter?.value || '',
     customHoldShelfLetterXsl: form.elements.customHoldShelfLetterXsl?.value || '',
@@ -759,13 +772,11 @@ function readFormState() {
     includeCopyrightStatement: getActiveFieldValue('includeCopyrightStatement', selectedLetter),
     copyrightStatementText: form.elements.copyrightStatementText?.value || DEFAULT_COPYRIGHT_STATEMENT,
     libraryGroup: getActiveFieldValue('libraryGroup', selectedLetter),
-    metadataOptions: Array.from(form.querySelectorAll('input[name="metadataOptions"]:checked')).map((input) => input.value)
+    metadataOptions: getActiveMetadataOptions(selectedLetter)
   };
 }
 
 function resetFormForLetterChange(nextLetterType = '') {
-  const preservedLibraryName = form.elements.libraryName.value;
-
   Object.entries(defaultState).forEach(([key, value]) => {
     if (key === 'libraryName' || key === 'letterType' || key === 'metadataOptions') {
       return;
@@ -792,7 +803,6 @@ function resetFormForLetterChange(nextLetterType = '') {
     input.checked = false;
   });
 
-  form.elements.libraryName.value = preservedLibraryName;
   form.elements.letterType.value = nextLetterType;
   syncLetterSpecificQuestions();
   syncSelectedPreviewSample();
@@ -840,6 +850,10 @@ function hasValidCustomHoldShelfXsl(state) {
 
 function getLetterDefinition(letterType) {
   return letterDefinitions[letterType] || letterDefinitions['pull-slip-letter'];
+}
+
+function getLetterModule(letterType) {
+  return window.letterModules?.[letterType] || null;
 }
 
 function getAllowedPreviewSamples(letterType) {
@@ -2799,8 +2813,10 @@ function buildReturnSlipLogoBlock(state) {
   if (state.includeLogo === 'alma-logo') {
     return [
       '							<tr>',
-      '								<td style="text-align:center; padding:12px 0;">',
-      '									<img src="cid:logo.jpg" alt="logo"/>',
+      '								<td style="padding:12px 0;">',
+      '									<div style="width:350px; max-width:350px; text-align:center;">',
+      '										<img src="cid:logo.jpg" alt="logo"/>',
+      '									</div>',
       '								</td>',
       '							</tr>'
     ].join('\n');
@@ -2809,8 +2825,10 @@ function buildReturnSlipLogoBlock(state) {
   if (state.includeLogo === 'yes' && state.logoUrl) {
     return [
       '							<tr>',
-      '								<td style="text-align:center; padding:12px 0;">',
-      `									<img src="${escapeHtml(state.logoUrl)}" alt="Library Logo" style="display:block; margin:0 auto; max-height:100px; max-width:350px;" />`,
+      '								<td style="padding:12px 0;">',
+      '									<div style="width:350px; max-width:350px; text-align:center;">',
+      `										<img src="${escapeHtml(state.logoUrl)}" alt="Library Logo" style="display:block; margin:0 auto; max-height:100px; max-width:350px;" />`,
+      '									</div>',
       '								</td>',
       '							</tr>'
     ].join('\n');
@@ -2832,61 +2850,171 @@ function applyReturnSlipLogoChoice(templateText, state) {
   );
 }
 
-function buildReturnSlipShippingLabelBlock(state) {
-  const isFullPage = state.returnSlipPrintMethod === 'full-page-multiple';
-  const tableStyle = isFullPage
-    ? 'width:6.4in; max-width:6.4in; height:8.8in; table-layout:fixed; border-collapse:collapse; margin:0 auto; page-break-after:always;'
-    : 'width:350px; max-width:350px; table-layout:fixed; border-collapse:collapse;';
-  const referenceCellStyle = isFullPage
-    ? 'font-size:24px;width:6.4in; padding:0.2in 0.28in; line-height:1.15;'
-    : 'font-size:12px;width:350px; padding:6px 8px;';
-  const returnCellStyle = isFullPage
-    ? 'font-size:34px;width:6.4in; height:2.2in; padding:0.28in; line-height:1.05;'
-    : 'font-size:16px;width:350px; padding:6px 8px;';
-  const shipCellStyle = isFullPage
-    ? 'font-size:42px;width:6.4in; height:5.0in; padding:0.28in; line-height:1.05;'
-    : 'font-size:18px;width:350px; padding:6px 8px;';
-  const sectionLabelStyle = isFullPage
-    ? 'font-size:28px; font-weight:bold;'
-    : 'font-size:12px;';
+const RETURN_SLIP_METADATA_OPTIONS = [
+  {
+    option: 'title',
+    label: 'Title',
+    test: "notification_data/request/display/title !=''",
+    value: 'notification_data/request/display/title'
+  },
+  {
+    option: 'author',
+    label: 'Author',
+    test: "notification_data/request/display/author !=''",
+    value: 'notification_data/request/display/author'
+  },
+  {
+    option: 'isbn',
+    label: 'ISBN',
+    test: "notification_data/request/display/isbn !=''",
+    value: 'notification_data/request/display/isbn'
+  },
+  {
+    option: 'oclc-number',
+    label: 'OCLC Number',
+    test: "notification_data/request/display/oclc_number !=''",
+    value: 'notification_data/request/display/oclc_number'
+  },
+  {
+    option: 'place-of-publication',
+    label: 'Place of Publication',
+    test: "notification_data/request/display/place_of_publication !=''",
+    value: 'notification_data/request/display/place_of_publication'
+  },
+  {
+    option: 'publication-date',
+    label: 'Publication Date',
+    test: "notification_data/request/display/publication_date !=''",
+    value: 'notification_data/request/display/publication_date'
+  },
+  {
+    option: 'publisher',
+    label: 'Publisher',
+    test: "notification_data/request/display/publisher !=''",
+    value: 'notification_data/request/display/publisher'
+  },
+  {
+    option: 'volume',
+    label: 'Volume',
+    test: "notification_data/request/display/volume !=''",
+    value: 'notification_data/request/display/volume'
+  },
+  {
+    option: 'issue',
+    label: 'Issue',
+    test: "notification_data/request/display/issue !=''",
+    value: 'notification_data/request/display/issue'
+  },
+  {
+    option: 'note-to-partner',
+    label: 'Note to Partner',
+    test: "notification_data/note_to_partner !=''",
+    value: 'notification_data/note_to_partner'
+  }
+];
+
+function buildReturnSlipMetadataBlock(state) {
+  const selectedMetadata = new Set(state.metadataOptions || []);
+  const selectedOptions = RETURN_SLIP_METADATA_OPTIONS.filter(({ option }) => selectedMetadata.has(option));
+
+  if (!selectedOptions.length) {
+    return '';
+  }
+
+  const combinedTest = selectedOptions.map(({ test }) => test).join(' or ');
+  const rows = selectedOptions.flatMap(({ label, test, value }) => [
+    `											<xsl:if test="${test}">`,
+    '												<tr>',
+    '													<td>',
+    `														<strong> ${label}: </strong>`,
+    `														<xsl:value-of select="${value}"/>`,
+    '													</td>',
+    '												</tr>',
+    '											</xsl:if>'
+  ]);
 
   return [
-    `						<table class="shippingLabel" cellspacing="0" cellpadding="0" border="1" style="${tableStyle}">`,
-    '							<tr>',
-    `								<td style="${referenceCellStyle}">`,
-    '									<b>Title: </b><xsl:value-of select="notification_data/request/display/title"/>',
-    '									<br/>',
-    '									<b>External ID: </b><xsl:value-of select="notification_data/request/external_request_id"/>',
-    '								</td>',
-    '							</tr>',
+    '							<!-- BEGIN OPTIONAL BOOK INFORMATION -->',
+    `							<xsl:if test="${combinedTest}">`,
+    '								<tr>',
+    '									<td>',
+    '										<br/>',
+    '										<table role="presentation" cellspacing="0" cellpadding="5" border="0" style="width:350px; max-width:350px; border:2px solid #000; border-collapse:collapse;">',
+    ...rows,
+    '										</table>',
+    '									</td>',
+    '								</tr>',
+    '							</xsl:if>',
+    '							<!-- END OPTIONAL BOOK INFORMATION -->'
+  ].join('\n');
+}
+
+function applyReturnSlipMetadataSelection(templateText, state) {
+  if (state.letterType !== 'resource-sharing-return-slip-letter') {
+    return templateText;
+  }
+
+  return templateText.replace(
+    /[ \t]*<!-- BEGIN OPTIONAL BOOK INFORMATION -->[\s\S]*?<!-- END OPTIONAL BOOK INFORMATION -->[^\S\r\n]*/g,
+    `${buildReturnSlipMetadataBlock(state)}\n`
+  );
+}
+
+function buildReturnSlipShippingLabelBlock(state) {
+  const isFullPage = state.returnSlipPrintMethod === 'full-page-multiple';
+  const includeReferenceBlock = !state.omitReferenceBlock;
+  const alignsWithBookMetadata = state.alignWithBookMetadata;
+  const tableStyle = isFullPage
+    ? 'width:6.4in; max-width:6.4in; height:8.8in; table-layout:fixed; border-collapse:collapse; margin:0 auto; page-break-after:always; border:2px solid #000;'
+    : `width:350px; max-width:350px; table-layout:fixed; border-collapse:collapse;${alignsWithBookMetadata ? ' margin-left:20px;' : ''} border:2px solid #000;`;
+  const referenceBlockStyle = isFullPage
+    ? 'width:6.4in; max-width:6.4in; margin:0 auto 0.12in auto; font-size:22px; line-height:1.1;'
+    : 'width:350px; max-width:350px; margin:0 0 6px 0; font-size:10px; line-height:1.15;';
+  const returnCellStyle = isFullPage
+    ? 'font-size:24px;width:6.4in; height:2.2in; padding:0.28in; line-height:1.12; border-bottom:2px solid #000; text-align:left;'
+    : 'font-size:10px;width:350px; padding:12px 16px; line-height:1.15; border-bottom:2px solid #000; text-align:left;';
+  const shipCellStyle = isFullPage
+    ? 'font-size:42px;width:6.4in; height:5.8in; padding:0.28in; line-height:1.05; text-align:center;'
+    : 'font-size:24px;width:350px; height:210px; padding:10px 18px; line-height:1.05; text-align:center;';
+  const sectionLabelStyle = isFullPage
+    ? 'font-size:20px; font-weight:bold; text-transform:uppercase;'
+    : 'font-size:9px; font-weight:bold; text-transform:uppercase;';
+
+  return [
+    ...(includeReferenceBlock ? [
+    `						<div style="${referenceBlockStyle}">`,
+    '							<b>Title: </b><xsl:value-of select="notification_data/request/display/title"/>',
+    '							<br/>',
+    '							<b>External Identifier: </b><xsl:value-of select="notification_data/request/external_request_id"/>',
+    '						</div>'
+    ] : []),
+    `						<table class="shippingLabel" cellspacing="0" cellpadding="0" border="0" style="${tableStyle}">`,
     '							<tr>',
     `								<td style="${returnCellStyle}">`,
-    `									<span style="${sectionLabelStyle}">Return To: </span>`,
+    `									<div style="${sectionLabelStyle}">Return To</div>`,
     '									<br/>',
-    '									<center><b><xsl:value-of select="notification_data/library/name"/></b></center>',
-    '									<xsl:if test="notification_data/library/address/line1 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line1"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/library/address/line2 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line2"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/library/address/line3 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line3"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/library/address/line4 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line4"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/library/address/line5 !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/line5"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/library/address/city !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/city"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/library/address/country !=\'\'"><center><b><xsl:value-of select="notification_data/library/address/country"/></b></center></xsl:if>',
-    '									<br/>',
+    '									<div><b><xsl:value-of select="notification_data/library/name"/></b></div>',
+    '									<xsl:if test="notification_data/library/address/line1 !=\'\'"><div><xsl:value-of select="notification_data/library/address/line1"/></div></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line2 !=\'\'"><div><xsl:value-of select="notification_data/library/address/line2"/></div></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line3 !=\'\'"><div><xsl:value-of select="notification_data/library/address/line3"/></div></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line4 !=\'\'"><div><xsl:value-of select="notification_data/library/address/line4"/></div></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/line5 !=\'\'"><div><xsl:value-of select="notification_data/library/address/line5"/></div></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/city !=\'\'"><div><xsl:value-of select="notification_data/library/address/city"/></div></xsl:if>',
+    '									<xsl:if test="notification_data/library/address/country !=\'\'"><div><xsl:value-of select="notification_data/library/address/country"/></div></xsl:if>',
     '								</td>',
     '							</tr>',
     '							<tr>',
     `								<td style="${shipCellStyle}">`,
-    `									<span style="${sectionLabelStyle}">Ship To: </span>`,
+    `									<div style="${sectionLabelStyle}">Ship To</div>`,
     '									<br/>',
-    '									<center><b><xsl:value-of select="notification_data/partner_name"/></b></center>',
-    '									<xsl:if test="notification_data/partner_address/line1 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line1"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/partner_address/line2 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line2"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/partner_address/line3 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line3"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/partner_address/line4 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line4"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/partner_address/line5 !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/line5"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/partner_address/city !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/city"/></b></center></xsl:if>',
-    '									<xsl:if test="notification_data/partner_address/country !=\'\'"><center><b><xsl:value-of select="notification_data/partner_address/country"/></b></center></xsl:if>',
-    '									<br/>',
+    '									<div><b><xsl:value-of select="notification_data/partner_name"/></b></div>',
+    '									<xsl:if test="notification_data/partner_address/line1 !=\'\'"><div><b><xsl:value-of select="notification_data/partner_address/line1"/></b></div></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line2 !=\'\'"><div><b><xsl:value-of select="notification_data/partner_address/line2"/></b></div></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line3 !=\'\'"><div><b><xsl:value-of select="notification_data/partner_address/line3"/></b></div></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line4 !=\'\'"><div><b><xsl:value-of select="notification_data/partner_address/line4"/></b></div></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/line5 !=\'\'"><div><b><xsl:value-of select="notification_data/partner_address/line5"/></b></div></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/city !=\'\'"><div><b><xsl:value-of select="notification_data/partner_address/city"/></b></div></xsl:if>',
+    '									<xsl:if test="notification_data/partner_address/country !=\'\'"><div><b><xsl:value-of select="notification_data/partner_address/country"/></b></div></xsl:if>',
     '								</td>',
     '							</tr>',
     '						</table>'
@@ -2908,7 +3036,9 @@ function applyReturnSlipContentChoice(templateText, state) {
   if (state.returnSlipContentMode === 'include-book-information') {
     const defaultLabelState = {
       ...state,
-      returnSlipPrintMethod: 'default-size'
+      returnSlipPrintMethod: 'default-size',
+      omitReferenceBlock: true,
+      alignWithBookMetadata: true
     };
 
     return templateText.replace(
@@ -2924,7 +3054,13 @@ function applyTemplateReplacements(templateText, state) {
   const logoUrl = state.includeLogo === 'yes' ? state.logoUrl : '';
   let output = templateText.replaceAll('@@LOGO_URL@@', logoUrl || '');
   output = applyAlmaConfiguredLogoChoice(output, state);
-  output = applyReturnSlipLogoChoice(output, state);
+
+  const letterModule = getLetterModule(state.letterType);
+  if (letterModule?.applyTemplateReplacements) {
+    output = letterModule.applyTemplateReplacements(output, state, {
+      escapeHtml
+    });
+  }
 
     if (['pull-slip-letter', 'pick-from-shelf', 'borrowing-receive-slip'].includes(state.letterType)) {
       output = applyCreateDateChoice(output, state);
@@ -2934,8 +3070,6 @@ function applyTemplateReplacements(templateText, state) {
     if (state.letterType === 'borrowing-receive-slip') {
       output = applyBorrowingReceivePatronIdChoice(output, state);
     }
-
-    output = applyReturnSlipContentChoice(output, state);
 
     if (state.letterType === 'pick-from-shelf') {
       let localCircHtml = '';
@@ -3244,18 +3378,6 @@ function applyLibraryNameToPreviewXml(xmlText, state) {
   if (xmlDoc.querySelector('parsererror')) {
     return xmlText;
   }
-
-  const libraryName = state.libraryName.trim() || 'Your Library';
-
-  xmlDoc.querySelectorAll('*').forEach((node) => {
-    if (node.children.length > 0) {
-      return;
-    }
-
-    if (node.textContent?.trim() === 'California State University, Bakersfield') {
-      node.textContent = libraryName;
-    }
-  });
 
   return new XMLSerializer().serializeToString(xmlDoc);
 }

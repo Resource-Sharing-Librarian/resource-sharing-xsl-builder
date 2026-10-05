@@ -57,71 +57,74 @@
 							<xsl:if test="notification_data/partner_email/email !=''">
 								<tr>
 									<td>
-										<strong> @@email@@: </strong>
+										<strong> Email: </strong>
 										<xsl:value-of select="notification_data/partner_email/email"/>
 									</td>
 								</tr>
 							</xsl:if>
 							<!-- RETURN SLIP LOGO INSERTION POINT -->
-							<xsl:if test="notification_data/partner_phone/phone !=''">
-								<tr>
-									<td>
-										<strong> @@phone@@: </strong>
-										<xsl:value-of select="notification_data/partner_phone/phone"/>
-									</td>
-								</tr>
-							</xsl:if>
 							<tr>
-								<td><img src="externalId.png" alt="externalId"/></td>
+								<td>
+									<div style="width:350px; max-width:350px; text-align:center;">
+										<img src="cid:externalId.png" alt="externalId" style="display:block; margin-left:63px; margin-right:0;"/>
+									</div>
+								</td>
 							</tr>
 							<!-- BEGIN OPTIONAL BOOK INFORMATION -->
-							<tr><td><br/></td></tr>
-							<xsl:if test="notification_data/request/display/title !=''">
-								<tr>
-									<td>
-										<strong> @@title@@: </strong>
-										<xsl:value-of select="notification_data/request/display/title"/>
-									</td>
-								</tr>
-							</xsl:if>
-							<xsl:if test="notification_data/request/display/journal_title !=''">
-								<tr>
-									<td>
-										<strong> @@journal_title@@: </strong>
-										<xsl:value-of select="notification_data/request/display/journal_title"/>
-									</td>
-								</tr>
-							</xsl:if>
-							<xsl:if test="notification_data/request/display/author !=''">
-								<tr>
-									<td>
-										<strong> @@author@@: </strong>
-										<xsl:value-of select="notification_data/request/display/author"/>
-									</td>
-								</tr>
-							</xsl:if>
-							<xsl:if test="notification_data/request/display/volume !=''">
-								<tr>
-									<td>
-										<strong> @@volume@@: </strong>
-										<xsl:value-of select="notification_data/request/display/volume"/>
-									</td>
-								</tr>
-							</xsl:if>
-							<xsl:if test="notification_data/request/display/issue !=''">
-								<tr>
-									<td>
-										<strong> @@issue@@: </strong>
-										<xsl:value-of select="notification_data/request/display/issue"/>
-									</td>
-								</tr>
-							</xsl:if>
-							<xsl:if test="notification_data/note_to_partner !=''">
+							<xsl:if test="notification_data/request/display/title !='' or notification_data/request/display/journal_title !='' or notification_data/request/display/author !='' or notification_data/request/display/volume !='' or notification_data/request/display/issue !='' or notification_data/note_to_partner !=''">
 								<tr>
 									<td>
 										<br/>
-										<strong> @@note_to_partner@@: </strong>
-										<xsl:value-of select="notification_data/note_to_partner"/>
+										<table role="presentation" cellspacing="0" cellpadding="5" border="0" style="width:350px; max-width:350px; border:2px solid #000; border-collapse:collapse;">
+											<xsl:if test="notification_data/request/display/title !=''">
+												<tr>
+													<td>
+														<strong> Title: </strong>
+														<xsl:value-of select="notification_data/request/display/title"/>
+													</td>
+												</tr>
+											</xsl:if>
+											<xsl:if test="notification_data/request/display/journal_title !=''">
+												<tr>
+													<td>
+														<strong> Journal Title: </strong>
+														<xsl:value-of select="notification_data/request/display/journal_title"/>
+													</td>
+												</tr>
+											</xsl:if>
+											<xsl:if test="notification_data/request/display/author !=''">
+												<tr>
+													<td>
+														<strong> Author: </strong>
+														<xsl:value-of select="notification_data/request/display/author"/>
+													</td>
+												</tr>
+											</xsl:if>
+											<xsl:if test="notification_data/request/display/volume !=''">
+												<tr>
+													<td>
+														<strong> Volume: </strong>
+														<xsl:value-of select="notification_data/request/display/volume"/>
+													</td>
+												</tr>
+											</xsl:if>
+											<xsl:if test="notification_data/request/display/issue !=''">
+												<tr>
+													<td>
+														<strong> Issue: </strong>
+														<xsl:value-of select="notification_data/request/display/issue"/>
+													</td>
+												</tr>
+											</xsl:if>
+											<xsl:if test="notification_data/note_to_partner !=''">
+												<tr>
+													<td>
+														<strong> Note to Partner: </strong>
+														<xsl:value-of select="notification_data/note_to_partner"/>
+													</td>
+												</tr>
+											</xsl:if>
+										</table>
 									</td>
 								</tr>
 							</xsl:if>

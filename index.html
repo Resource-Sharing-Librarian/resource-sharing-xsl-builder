@@ -36,11 +36,6 @@
         </div>
 
         <div class="field-grid">
-          <label class="field">
-            <span>Library Name</span>
-            <input type="text" name="libraryName" value="">
-          </label>
-
           <label class="field field-wide">
             <span>Letter to Customize</span>
             <select name="letterType">
@@ -169,6 +164,33 @@
               value=""
               placeholder="https://example.org/library-logo.png">
           </label>
+
+          <div class="form-subsection field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="returnSlipContentMode" data-dependent-value="include-book-information">
+            <h3>Metadata</h3>
+          </div>
+
+          <fieldset class="metadata-section field-wide" data-letter-question="resource-sharing-return-slip-letter" data-dependent-question="returnSlipContentMode" data-dependent-value="include-book-information">
+            <legend>Select the metadata you want on the slip.</legend>
+
+            <div class="metadata-group">
+              <div class="metadata-group-header">
+                <h4>Book Information Metadata</h4>
+                <button type="button" class="button primary metadata-select-all" data-metadata-group="return-slip-book-information">Select All</button>
+              </div>
+              <div class="metadata-option-grid">
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="title"><span>Title</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="author"><span>Author</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="isbn"><span>ISBN</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="oclc-number"><span>OCLC Number</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="place-of-publication"><span>Place of Publication</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="publication-date"><span>Publication Date</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="publisher"><span>Publisher</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="volume"><span>Volume</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="issue"><span>Issue</span></label>
+                <label class="metadata-option"><input type="checkbox" name="metadataOptions" value="note-to-partner"><span>Note to Partner</span></label>
+              </div>
+            </div>
+          </fieldset>
 
           <label class="field field-wide" data-letter-question="borrowing-receive-slip">
             <span>Do you want the Patron ID number on the slip?</span>
@@ -508,8 +530,16 @@ This institution reserves the right to refuse to accept a copying order, if, in 
   </main>
 
   <script>
+    (function loadLetterModules() {
+      const returnSlipModule = document.createElement('script');
+      returnSlipModule.async = false;
+      returnSlipModule.src = `./letters/resource-sharing-return-slip-letter/letter-module.js?v=${Date.now()}`;
+      document.body.appendChild(returnSlipModule);
+    }());
+
     (function loadFreshAppScript() {
       const script = document.createElement('script');
+      script.async = false;
       script.src = `./app.js?v=${Date.now()}`;
       document.body.appendChild(script);
     }());
